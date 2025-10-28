@@ -11,9 +11,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Carjo">
-    <!-- CAMBIO: Color del tema (la barra superior del navegador) a naranja --><meta name="theme-color" content="#F9A825">
+    <!-- Color del tema (la barra superior del navegador) a naranja --><meta name="theme-color" content="#F9A825">
     
-    <!-- CAMBIO: Favicon (icono de la pestaña del navegador) usando el SVG del logo --><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%23F9A825%22></circle><path d=%22M75 35H25a5 5 0 0 0-5 5v30a5 5 0 0 0 5 5h50a5 5 0 0 0 5-5V40a5 5 0 0 0-5-5zM30 48h40v-8H30zM30 58h40v-8H30zM50 25l25 10H25l25-10z%22 fill=%22%23ffffff%22></path></svg>">
+    <!-- Favicon (icono de la pestaña del navegador) usando el SVG del logo --><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%23F9A825%22></circle><path d=%22M75 35H25a5 5 0 0 0-5 5v30a5 5 0 0 0 5 5h50a5 5 0 0 0 5-5V40a5 5 0 0 0-5-5zM30 48h40v-8H30zM30 58h40v-8H30zM50 25l25 10H25l25-10z%22 fill=%22%23ffffff%22></path></svg>">
     
     <!-- Link al Manifiesto de la App (generado con JS) --><link rel="manifest" id="app-manifest">
     <!-- --- FIN DE CAMBIOS PWA --- --><style>
@@ -22,7 +22,7 @@
         }
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         
-        /* CAMBIO: Color del botón de subida */
+        /* Color del botón de subida */
         #file-upload-label {
             cursor: pointer;
             transition: all 0.2s ease-in-out;
@@ -57,10 +57,10 @@
         .qty-btn:active {
             opacity: 0.7;
         }
-        /* CAMBIO: Colores de los botones +/- */
+        /* REVERTIDO: Colores de los botones +/- */
         .qty-btn.bg-red-500 { background-color: #EF4444; } /* Rojo existente */
-        .qty-btn.bg-green-600 { background-color: #F9A825; } /* Naranja del logo */
-        .qty-btn.bg-green-600:hover { background-color: #E6951A; } /* Naranja más oscuro al pasar ratón */
+        .qty-btn.bg-green-600 { background-color: #22C55E; } /* Verde existente */
+        .qty-btn.bg-green-600:hover { background-color: #16A34A; } /* Verde más oscuro al pasar ratón */
 
     </style>
 </head>
@@ -68,7 +68,7 @@
 
     <!-- PANTALLA DE IMPORTACIÓN --><div id="import-screen" class="min-h-screen flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md text-center">
-            <!-- CAMBIO: Icono como logo en la pantalla de importación --><div class="mb-4">
+            <!-- Icono como logo en la pantalla de importación --><div class="mb-4">
                 <img src="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%23F9A825%22></circle><path d=%22M75 35H25a5 5 0 0 0-5 5v30a5 5 0 0 0 5 5h50a5 5 0 0 0 5-5V40a5 5 0 0 0-5-5zM30 48h40v-8H30zM30 58h40v-8H30zM50 25l25 10H25l25-10z%22 fill=%22%23ffffff%22></path></svg>" 
                      alt="Carjo Presupuestos Logo" class="w-24 h-24 mx-auto mb-4">
             </div>
@@ -80,15 +80,7 @@
             </label>
             <input type="file" id="file-input" accept=".csv,.xlsx,.xls">
 
-            <div class="mt-6 text-left bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <h3 class="font-semibold text-gray-700">Formato del CSV / XLSX:</h3>
-                <p class="text-sm text-gray-500 mt-2">
-                    Tu archivo debe tener una cabecera con al menos estas 3 columnas (el orden no importa):
-                </p>
-                <code class="block bg-gray-200 text-gray-700 p-2 rounded-md text-xs mt-2">
-                    Componente,Precio PVP (€),Coste tras descuentos
-                </code>
-            </div>
+            <!-- BLOQUE ELIMINADO -->
             <p id="error-message" class="text-red-500 text-sm mt-4 hidden"></p>
         </div>
     </div>
@@ -97,7 +89,7 @@
         
         <!-- Cabecera --><header class="bg-white shadow-md p-4 sticky top-0 z-10 flex justify-between items-center">
             <h1 class="text-xl font-bold text-gray-800">Seleccionar Productos</h1>
-            <!-- CAMBIO: Color del botón de cargar nuevo --><button id="clear-data-button" class="bg-[#F9A825] text-white font-semibold py-2 px-4 rounded-lg shadow-md text-sm hover:bg-[#E6951A] transition-colors">
+            <!-- Color del botón de cargar nuevo --><button id="clear-data-button" class="bg-[#F9A825] text-white font-semibold py-2 px-4 rounded-lg shadow-md text-sm hover:bg-[#E6951A] transition-colors">
                 Cargar Nuevo
             </button>
         </header>
@@ -118,7 +110,7 @@
             <!-- Totales --><div class="grid grid-cols-3 gap-4 mb-4">
                 <div class="text-center">
                     <span class="block text-xs font-medium text-gray-500 uppercase">Total</span>
-                    <!-- CAMBIO: Color del texto de total --><span id="total-price" class="block text-lg font-bold text-[#F9A825]">0.00 €</span>
+                    <!-- REVERTIDO: Color del texto de total --><span id="total-price" class="block text-lg font-bold text-blue-600">0.00 €</span>
                 </div>
                 <div class="text-center">
                     <span class="block text-xs font-medium text-gray-500 uppercase">Beneficio</span>
@@ -177,12 +169,12 @@
                 "start_url": ".",
                 "display": "standalone",
                 "background_color": "#f3f4f6",
-                // CAMBIO: Color del tema en el manifiesto PWA
+                // Color del tema en el manifiesto PWA
                 "theme_color": "#F9A825",
                 "description": "Calculadora de presupuestos a partir de un Excel.",
                 "icons": [
                     {
-                        // CAMBIO: Icono en el manifiesto PWA
+                        // Icono en el manifiesto PWA
                         "src": "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%23F9A825%22></circle><path d=%22M75 35H25a5 5 0 0 0-5 5v30a5 5 0 0 0 5 5h50a5 5 0 0 0 5-5V40a5 5 0 0 0-5-5zM30 48h40v-8H30zM30 58h40v-8H30zM50 25l25 10H25l25-10z%22 fill=%22%23ffffff%22></path></svg>",
                         "sizes": "192x192",
                         "type": "image/svg+xml"
@@ -350,7 +342,7 @@
          * Muestra los productos en la cuadrícula.
          */
         function displayProducts(productsToDisplay) {
-            productList.innerHTML = ''; // Limpiar lista
+            productList.innerHTML = '';
             
             if (productsToDisplay.length === 0) {
                 productList.innerHTML = '<p class="col-span-full text-center text-gray-500">No se encontraron productos.</p>';
@@ -361,12 +353,12 @@
                 const card = document.createElement('div');
                 card.className = "bg-white p-4 rounded-lg shadow-md flex justify-between items-center";
                 
-                const quantity = cart[product.id] || 0; // Obtener cantidad actual del carrito
+                const quantity = cart[product.id] || 0;
                 
                 card.innerHTML = `
                     <div class="flex-1 pr-4">
                         <h3 class="font-semibold text-gray-800 text-sm truncate">${product.nombre}</h3>
-                        <p class="text-[#F9A825] font-bold text-md">${product.precio.toFixed(2)} €</p>
+                        <p class="text-blue-600 font-bold text-md">${product.precio.toFixed(2)} €</p>
                     </div>
                     <div class="flex items-center gap-3">
                         <button class="qty-btn bg-red-500" onclick="decrementQuantity(event, '${product.id}')">-</button>
@@ -463,7 +455,7 @@
                     itemEl.className = 'flex justify-between items-center py-1 px-2 even:bg-gray-50 rounded';
                     itemEl.innerHTML = `
                         <span>
-                            <span class="font-semibold text-[#F9A825]">${quantity}x</span> ${product.nombre}
+                            <span class="font-semibold text-blue-600">${quantity}x</span> ${product.nombre}
                         </span>
                         <span class="font-medium">${(product.precio * quantity).toFixed(2)} €</span>
                     `;
@@ -505,4 +497,5 @@
     </script>
 </body>
 </html>
+
 
