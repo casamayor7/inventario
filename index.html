@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Ventas</title>
+    <!-- 1. Carga de Tailwind CSS para estilos rápidos y modernos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 2. Añadir la librería SheetJS (xlsx.js) para leer archivos Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- --- NUEVO: Metadatos de App Web Progresiva (PWA) --- -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Ventas">
+    <meta name="theme-color" content="#ffffff">
+    
+    <!-- Icono de la App (SVG de calculadora) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%232563eb%22></rect><rect x=%2220%22 y=%2220%22 width=%2260%22 height=%2215%22 rx=%225%22 fill=%22%23ffffff%22 opacity=%220.8%22></rect><rect x=%2220%22 y=%2245%22 width=%2210%22 height=%2210%22 rx=%223%22 fill=%22%23ffffff%22></rect><rect x=%2235%22 y=%2245%22 width=%2210%22 height=%2210%22 rx=%223%22 fill=%22%23ffffff%22></rect><rect x=%2250%22 y=%2245%22 width=%2210%22 height=%2210%22 rx=%223%22 fill=%22%23ffffff%22></rect><rect x=%2220%22 y=%2260%22 width=%2210%22 height=%2210%22 rx=%223%22 fill=%22%23ffffff%22></rect><rect x=%2235%22 y=%2260%22 width=%2210%22 height=%2210%22 rx=%223%22 fill=%22%23ffffff%22></rect><rect x=%2250%22 y=%2260%22 width=%2210%22 height=%2210%22 rx=%223%22 fill=%22%23ffffff%22></rect><rect x=%2265%22 y=%2245%22 width=%2215%22 height=%2225%22 rx=%223%22 fill=%22%23ffffff%22></rect></svg>">
+    
+    <!-- Link al Manifiesto de la App (generado con JS) -->
+    <link rel="manifest" id="app-manifest">
+    <!-- --- FIN DE CAMBIOS PWA --- -->
+
+    <style>
+        /* 2. Usar la fuente "Inter" para un look moderno */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Añadir la fuente Inter desde Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        /* 3. Estilo para el botón de "subir archivo" */
+        #file-upload-label {
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        #file-upload-label:hover {
+            opacity: 0.9;
+        }
+        /* 4. Ocultar el input de archivo real */
+        #file-input {
+            display: none;
+        }
+        /* 5. Asegurar que la barra de resumen no solape el contenido */
+        #product-list {
+            padding-bottom: 12rem; /* Espacio para la barra de resumen y el carrito */
+        }
+        
+        /* 6. Estilos para los botones +/- */
+        .qty-btn {
+            width: 2.25rem; /* 36px */
+            height: 2.25rem; /* 36px */
+            border-radius: 9999px; /* Círculo completo */
+            color: white;
+            font-weight: bold;
+            font-size: 1.5rem; /* 24px */
+            line-height: 1; /* Centrar el - y + */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.2s;
+            -webkit-user-select: none; /* Evitar selección de texto en botones */
+            user-select: none;
+        }
+        .qty-btn:active {
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- PANTALLA DE IMPORTACIÓN (Visible al inicio, si no hay datos guardados) -->
+    <div id="import-screen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md text-center">
+            <h1 class="text-2xl font-bold text-gray-800 mb-4">Calculadora de Ventas</h1>
+            <p class="text-gray-600 mb-6">Sube tu archivo .CSV o .XLSX de productos para empezar.</p>
+
+            <!-- Botón falso que activa el input de archivo real -->
+            <label for="file-input" id="file-upload-label" class="w-full bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md inline-block">
+                Importar Archivo .CSV / .XLSX
+            </label>
+            <!-- Input de archivo real, oculto -->
+            <input type="file" id="file-input" accept=".csv,.xlsx,.xls">
+
+            <div class="mt-6 text-left bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <h3 class="font-semibold text-gray-700">Formato del CSV / XLSX:</h3>
+                <p class="text-sm text-gray-500 mt-2">
+                    Tu archivo debe tener una cabecera con al menos estas 3 columnas (el orden no importa):
+                </p>
+                <code class="block bg-gray-200 text-gray-700 p-2 rounded-md text-xs mt-2">
+                    Componente,Precio PVP (€),Coste tras descuentos
+                </code>
+            </div>
+            <!-- Mensaje de error -->
+            <p id="error-message" class="text-red-500 text-sm mt-4 hidden"></p>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE CALCULADORA (Oculta al inicio) -->
+    <div id="calculator-screen" class="hidden flex flex-col min-h-screen">
+        
+        <!-- Cabecera -->
+        <header class="bg-white shadow-md p-4 sticky top-0 z-10 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-gray-800">Seleccionar Productos</h1>
+            <button id="clear-data-button" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md text-sm hover:bg-blue-700 transition-colors">
+                Cargar Nuevo
+            </button>
+        </header>
+
+        <!-- Buscador (Opcional, pero útil) -->
+        <div class="p-4 bg-white border-b border-gray-200">
+            <input type="text" id="search-box" placeholder="Buscar producto..." class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <!-- Lista de Productos -->
+        <main id="product-list" class="flex-1 p-4 flex flex-col gap-2">
+            <!-- Los productos se añadirán aquí con JavaScript -->
+        </main>
+
+        <!-- Barra de Resumen y Carrito (Fija en la parte inferior) -->
+        <footer class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg p-4 z-10">
+            
+            <!-- Carrito/Items seleccionados -->
+            <div id="cart-items" class="max-h-32 overflow-y-auto mb-4 text-sm text-gray-700">
+                <!-- Los items del carrito se añadirán aquí -->
+                <p id="cart-placeholder" class="text-gray-400 text-center">El carrito está vacío</p>
+            </div>
+            
+            <!-- Totales -->
+            <div class="grid grid-cols-3 gap-4 mb-4">
+                <div class="text-center">
+                    <span class="block text-xs font-medium text-gray-500 uppercase">Total</span>
+                    <span id="total-price" class="block text-lg font-bold text-blue-600">0.00 €</span>
+                </div>
+                <div class="text-center">
+                    <span class="block text-xs font-medium text-gray-500 uppercase">Beneficio</span>
+                    <span id="total-profit" class="block text-lg font-bold text-green-600">0.00 €</span>
+                </div>
+                <div class="text-center">
+                    <span class="block text-xs font-medium text-gray-500 uppercase">Items</span>
+                    <span id="total-items" class="block text-lg font-bold text-gray-800">0</span>
+                </div>
+            </div>
+
+            <!-- Botón de Reinicio -->
+            <button id="reset-button" class="w-full bg-red-500 text-white font-semibold py-3 rounded-lg shadow-md hover:bg-red-600 transition-colors">
+                Limpiar Carrito
+            </button>
+        </footer>
+    </div>
+
+    <script>
+        // --- 1. REFERENCIAS A ELEMENTOS DEL DOM ---
+        const importScreen = document.getElementById('import-screen');
+        const calculatorScreen = document.getElementById('calculator-screen');
+        const fileInput = document.getElementById('file-input');
+        const productList = document.getElementById('product-list');
+        const searchBox = document.getElementById('search-box');
+        const errorMessage = document.getElementById('error-message');
+        const clearDataButton = document.getElementById('clear-data-button');
+        
+        const cartItemsContainer = document.getElementById('cart-items');
+        const cartPlaceholder = document.getElementById('cart-placeholder');
+        const totalPriceEl = document.getElementById('total-price');
+        const totalProfitEl = document.getElementById('total-profit');
+        const totalItemsEl = document.getElementById('total-items');
+        const resetButton = document.getElementById('reset-button');
+        const appManifest = document.getElementById('app-manifest');
+
+        // --- 2. ESTADO DE LA APLICACIÓN ---
+        let allProducts = []; // Guarda todos los productos del CSV
+        let cart = {}; // Guarda los productos seleccionados { productId: quantity }
+
+        // --- 3. EVENT LISTENERS ---
+        // Se añaden en initializeApp() después de que el DOM esté cargado
+
+        // --- 4. LÓGICA DE INICIALIZACIÓN ---
+        
+        /**
+         * Se ejecuta cuando el contenido de la página se ha cargado.
+         * Comprueba localStorage para cargar datos guardados.
+         */
+        document.addEventListener('DOMContentLoaded', initializeApp);
+
+        function initializeApp() {
+            // --- NUEVO: Generar el manifiesto de la PWA dinámicamente ---
+            const manifest = {
+                "name": "Calculadora de Ventas",
+                "short_name": "Ventas",
+                "start_url": ".",
+                "display": "standalone",
+                "background_color": "#f3f4f6",
+                "theme_color": "#2563eb",
+                "description": "Calculadora de ventas a partir de un Excel.",
+                "icons": [
+                    {
+                        "src": "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%232563eb%22></rect><rect x=%2220%22 y=%2220%22 width=%2260%22 height=%2215%22 rx=%225%22 fill=%22%23ffffff%22 opacity=%220.8%22></rect><rect x=%2220%22 y=%2245%22 width=%2210%22 height=%2210%22 rx=%223%22 fill=%22%23ffffff%22></rect><rect x=%2235%22 y=%2245%22 width=%2210%22 height=%2210%22 rx=%223%22 fill=%22%23ffffff%22></rect><rect x=%2250%22 y=%2245%22 width=%2210%22 height=%2210%22 rx=%223%22 fill=%22%23ffffff%22></rect><rect x=%2220%22 y=%2260%22 width=%2210%22 height=%2210%22 rx=%223%22 fill=%22%23ffffff%22></rect><rect x=%2235%22 y=%2260%22 width=%2210%22 height=%2210%22 rx=%223%22 fill=%22%23ffffff%22></rect><rect x=%2250%22 y=%2260%22 width=%2210%22 height=%2210%22 rx=%223%22 fill=%22%23ffffff%22></rect><rect x=%2265%22 y=%2245%22 width=%2215%22 height=%2225%22 rx=%223%22 fill=%22%23ffffff%22></rect></svg>",
+                        "sizes": "192x192",
+                        "type": "image/svg+xml"
+                    }
+                ]
+            };
+            // Convertir el JSON en un Data URI y asignarlo al link
+            const manifestString = JSON.stringify(manifest);
+            appManifest.href = 'data:application/json;base64,' + btoa(unescape(encodeURIComponent(manifestString)));
+            // --- FIN DE CAMBIO PWA ---
+
+
+            // Asignar listeners
+            fileInput.addEventListener('change', handleFileSelect);
+            resetButton.addEventListener('click', resetCalculator);
+            searchBox.addEventListener('input', filterProducts);
+            clearDataButton.addEventListener('click', clearAllData);
+
+            // Comprobar si hay productos guardados
+            const savedProducts = localStorage.getItem('allProducts');
+            const savedCart = localStorage.getItem('cart');
+
+            if (savedProducts) {
+                try {
+                    allProducts = JSON.parse(savedProducts);
+                    displayProducts(allProducts);
+
+                    if (savedCart) {
+                        cart = JSON.parse(savedCart);
+                        updateSummary();
+                    }
+
+                    // Saltar la pantalla de importación
+                    importScreen.classList.add('hidden');
+                    calculatorScreen.classList.remove('hidden');
+                    calculatorScreen.classList.add('flex');
+                } catch (e) {
+                    console.error("Error al parsear datos de localStorage", e);
+                    // Si hay error, limpiar localStorage y mostrar importación
+                    clearAllData();
+                }
+            }
+            // Si no hay productos guardados, la app se inicia normalmente
+            // mostrando la pantalla de importación.
+        }
+        
+        // --- 5. LÓGICA DE LA APLICACIÓN ---
+
+        /**
+         * Maneja la selección del archivo CSV.
+         */
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Validar que es un CSV o XLSX
+            if (!file.name.endsWith('.csv') && !file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+                showError('Por favor, sube un archivo .csv o .xlsx');
+                return;
+            }
+            
+            errorMessage.classList.add('hidden'); // Ocultar errores previos
+
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    // Usar SheetJS para leer el archivo (funciona para CSV y XLSX)
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    const sheetName = workbook.SheetNames[0]; // Tomar la primera hoja
+                    const worksheet = workbook.Sheets[sheetName];
+                    
+                    // Convertir la hoja en un array de arrays
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    
+                    parseData(jsonData);
+
+                } catch (err) {
+                    console.error(err);
+                    showError('Error al procesar el archivo. Asegúrate de que el formato es correcto.');
+                }
+            };
+            
+            reader.onerror = function() {
+                showError('No se pudo leer el archivo.');
+            };
+            
+            // Leer siempre como ArrayBuffer, SheetJS lo maneja
+            reader.readAsArrayBuffer(file);
+        }
+
+        /**
+         * Muestra un mensaje de error.
+         */
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.remove('hidden');
+        }
+
+        /**
+         * Parsea los datos (array de arrays de SheetJS) y los convierte en productos.
+         */
+        function parseData(data) {
+            allProducts = [];
+            if (data.length < 2) {
+                showError('El archivo está vacío o no tiene filas de datos.');
+                return;
+            }
+
+            // 1. Encontrar la cabecera y los índices de las columnas
+            const header = data[0].map(h => String(h).toLowerCase().trim());
+            
+            const nameIndex = header.indexOf('componente');
+            const priceIndex = header.indexOf('precio pvp (€)');
+            const costIndex = header.indexOf('coste tras descuentos');
+
+            // 2. Validar que encontramos las columnas necesarias
+            if (nameIndex === -1 || priceIndex === -1 || costIndex === -1) {
+                let missing = [];
+                if (nameIndex === -1) missing.push('"componente"');
+                if (priceIndex === -1) missing.push('"precio pvp (€)"');
+                if (costIndex === -1) missing.push('"coste tras descuentos"');
+                showError(`El archivo no tiene las columnas requeridas: ${missing.join(', ')}.`);
+                return;
+            }
+
+            // 3. Iterar por las filas de datos (empezar en 1 para saltar cabecera)
+            for (let i = 1; i < data.length; i++) {
+                const row = data[i];
+                if (!row || row.length === 0) continue; // Saltar filas vacías
+
+                const nombre = row[nameIndex];
+                const precioVenta = parseFloat(row[priceIndex]);
+                const costo = parseFloat(row[costIndex]);
+
+                // 4. Validar datos de la fila
+                if (nombre && !isNaN(precioVenta) && !isNaN(costo)) {
+                    allProducts.push({
+                        id: `prod-${i}`,
+                        nombre: String(nombre).trim(),
+                        precio: precioVenta,
+                        costo: costo
+                    });
+                }
+            }
+
+            // Éxito: Guardar en localStorage
+            try {
+                localStorage.setItem('allProducts', JSON.stringify(allProducts));
+            } catch (e) {
+                console.error("Error al guardar en localStorage", e);
+                showError('No se pudieron guardar los productos. Puede que el almacenamiento esté lleno.');
+            }
+
+            // Cambiar de pantalla y mostrar productos
+            displayProducts(allProducts);
+            importScreen.classList.add('hidden');
+            calculatorScreen.classList.remove('hidden');
+            calculatorScreen.classList.add('flex');
+        }
+
+        /**
+         * Muestra los productos en la cuadrícula.
+         */
+        function displayProducts(productsToDisplay) {
+            productList.innerHTML = ''; // Limpiar lista
+            
+            if (productsToDisplay.length === 0) {
+                productList.innerHTML = '<p class="col-span-full text-center text-gray-500">No se encontraron productos.</p>';
+                return;
+            }
+
+            productsToDisplay.forEach(product => {
+                const card = document.createElement('div');
+                // --- CAMBIO A VISTA DE LISTA CON BOTONES +/- ---
+                card.className = "bg-white p-4 rounded-lg shadow-md flex justify-between items-center";
+                
+                const quantity = cart[product.id] || 0; // Obtener cantidad actual del carrito
+                
+                card.innerHTML = `
+                    <div class="flex-1 pr-4">
+                        <h3 class="font-semibold text-gray-800 text-sm truncate">${product.nombre}</h3>
+                        <p class="text-blue-600 font-bold text-md">${product.precio.toFixed(2)} €</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button class="qty-btn bg-red-500" onclick="decrementQuantity(event, '${product.id}')">-</button>
+                        <span id="qty-${product.id}" class="font-bold text-lg w-8 text-center">${quantity}</span>
+                        <button class="qty-btn bg-green-600" onclick="incrementQuantity(event, '${product.id}')">+</button>
+                    </div>
+                `;
+                // --- FIN DE CAMBIO ---
+                
+                // Ya no se añade evento click a la tarjeta
+                productList.appendChild(card);
+            });
+        }
+
+        /**
+         * Filtra los productos basados en el buscador.
+         */
+        function filterProducts() {
+            const query = searchBox.value.toLowerCase();
+            const filteredProducts = allProducts.filter(product => 
+                product.nombre.toLowerCase().includes(query)
+            );
+            displayProducts(filteredProducts);
+        }
+
+        /**
+         * Añade un producto al carrito y actualiza el resumen.
+         */
+        // ESTA FUNCIÓN YA NO SE USA, LA DEJAMOS COMENTADA POR SI ACASO
+        // function addToCart(product) {
+        //     cart.push(product);
+        //     updateSummary();
+        // }
+
+        // --- NUEVAS FUNCIONES PARA +/- ---
+
+        /**
+         * Incrementa la cantidad de un producto.
+         */
+        function incrementQuantity(event, productId) {
+            event.stopPropagation(); // Evitar clicks fantasma
+            const currentQty = cart[productId] || 0;
+            cart[productId] = currentQty + 1;
+            
+            updateQuantityUI(productId);
+            updateSummary();
+        }
+
+        /**
+         * Decrementa la cantidad de un producto.
+         */
+        function decrementQuantity(event, productId) {
+            event.stopPropagation(); // Evitar clicks fantasma
+            const currentQty = cart[productId] || 0;
+            
+            if (currentQty > 0) {
+                cart[productId] = currentQty - 1;
+                if (cart[productId] === 0) {
+                    delete cart[productId];
+                }
+            }
+            
+            updateQuantityUI(productId);
+            updateSummary();
+        }
+
+        /**
+         * Actualiza solo el número (cantidad) en la lista de productos.
+         * Esto es mucho más rápido que volver a dibujar toda la lista.
+         */
+        function updateQuantityUI(productId) {
+            const qtyEl = document.getElementById(`qty-${productId}`);
+            if (qtyEl) {
+                qtyEl.textContent = cart[productId] || 0;
+            }
+        }
+
+
+        /**
+         * Actualiza los totales y la lista del carrito.
+         */
+        function updateSummary() {
+            let totalPrice = 0;
+            let totalCost = 0;
+            let totalItems = 0;
+
+            cartItemsContainer.innerHTML = ''; // Limpiar lista del carrito
+
+            // Comprobar si el carrito (objeto) está vacío
+            if (Object.keys(cart).length === 0) {
+                cartItemsContainer.appendChild(cartPlaceholder);
+                cartPlaceholder.classList.remove('hidden');
+            } else {
+                cartPlaceholder.classList.add('hidden');
+                
+                // Recorrer el objeto cart { productId: quantity }
+                for (const productId in cart) {
+                    const quantity = cart[productId];
+                    if (quantity === 0) continue; // Saltar si la cantidad es 0
+
+                    // Encontrar el producto completo desde allProducts
+                    const product = allProducts.find(p => p.id === productId);
+                    if (!product) continue; // Seguridad por si el producto no se encuentra
+
+                    // Calcular totales
+                    totalPrice += product.precio * quantity;
+                    totalCost += product.costo * quantity;
+                    totalItems += quantity;
+
+                    // Mostrar en la lista de items del carrito
+                    const itemEl = document.createElement('div');
+                    itemEl.className = 'flex justify-between items-center py-1 px-2 even:bg-gray-50 rounded';
+                    itemEl.innerHTML = `
+                        <span>
+                            <span class="font-semibold text-blue-600">${quantity}x</span> ${product.nombre}
+                        </span>
+                        <span class="font-medium">${(product.precio * quantity).toFixed(2)} €</span>
+                    `;
+                    cartItemsContainer.appendChild(itemEl);
+                }
+            }
+
+            // --- INICIO DE LA CORRECCIÓN ---
+            // Calcular el beneficio total ANTES de mostrarlo
+            const totalProfit = totalPrice - totalCost;
+            // --- FIN DE LA CORRECCIÓN ---
+
+            // Actualizar los textos de los totales
+            totalPriceEl.textContent = `${totalPrice.toFixed(2)} €`;
+            totalProfitEl.textContent = `${totalProfit.toFixed(2)} €`; // Esta línea ahora funciona
+            totalItemsEl.textContent = totalItems;
+
+            // Guardar el carrito (objeto) en localStorage
+            try {
+                localStorage.setItem('cart', JSON.stringify(cart));
+            } catch (e) {
+                console.error("Error al guardar el carrito en localStorage", e);
+            }
+        }
+
+        /**
+         * Resetea la calculadora.
+         */
+        function resetCalculator() {
+            cart = {}; // Ahora es un objeto vacío
+            localStorage.removeItem('cart'); // Limpiar carrito guardado
+            updateSummary();
+            
+            // Recargar la lista de productos para que muestre 0 en las cantidades
+            filterProducts(); // Esto respeta el filtro de búsqueda actual
+        }
+
+        /**
+         * Borra todos los datos guardados y recarga la app.
+         */
+        function clearAllData() {
+            localStorage.removeItem('allProducts');
+            localStorage.removeItem('cart');
+            // Recargar la página para volver a la pantalla de importación
+            location.reload();
+        }
+    </script>
+</body>
+</html>
+
