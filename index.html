@@ -3,85 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Ventas</title>
-    <!-- 1. Carga de Tailwind CSS para estilos rápidos y modernos -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 2. Añadir la librería SheetJS (xlsx.js) para leer archivos Excel -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <title>Carjo Presupuestos</title>
+    <!-- 1. Carga de Tailwind CSS para estilos rápidos y modernos --><script src="https://cdn.tailwindcss.com"></script>
+    <!-- 2. Añadir la librería SheetJS (xlsx.js) para leer archivos Excel --><script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
-    <!-- --- NUEVO: Metadatos de App Web Progresiva (PWA) --- -->
-    <meta name="mobile-web-app-capable" content="yes">
+    <!-- --- Metadatos de App Web Progresiva (PWA) --- --><meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Ventas">
-    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-title" content="Carjo">
+    <!-- CAMBIO: Color del tema (la barra superior del navegador) a naranja --><meta name="theme-color" content="#F9A825">
     
-    <!-- Icono de la App (SVG de calculadora) -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%232563eb%22></rect><rect x=%2220%22 y=%2220%22 width=%2260%22 height=%2215%22 rx=%225%22 fill=%22%23ffffff%22 opacity=%220.8%22></rect><rect x=%2220%22 y=%2245%22 width=%2210%22 height=%2210%22 rx=%223%22 fill=%22%23ffffff%22></rect><rect x=%2235%22 y=%2245%22 width=%2210%22 height=%2210%22 rx=%223%22 fill=%22%23ffffff%22></rect><rect x=%2250%22 y=%2245%22 width=%2210%22 height=%2210%22 rx=%223%22 fill=%22%23ffffff%22></rect><rect x=%2220%22 y=%2260%22 width=%2210%22 height=%2210%22 rx=%223%22 fill=%22%23ffffff%22></rect><rect x=%2235%22 y=%2260%22 width=%2210%22 height=%2210%22 rx=%223%22 fill=%22%23ffffff%22></rect><rect x=%2250%22 y=%2260%22 width=%2210%22 height=%2210%22 rx=%223%22 fill=%22%23ffffff%22></rect><rect x=%2265%22 y=%2245%22 width=%2215%22 height=%2225%22 rx=%223%22 fill=%22%23ffffff%22></rect></svg>">
+    <!-- CAMBIO: Favicon (icono de la pestaña del navegador) usando el SVG del logo --><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%23F9A825%22></circle><path d=%22M75 35H25a5 5 0 0 0-5 5v30a5 5 0 0 0 5 5h50a5 5 0 0 0 5-5V40a5 5 0 0 0-5-5zM30 48h40v-8H30zM30 58h40v-8H30zM50 25l25 10H25l25-10z%22 fill=%22%23ffffff%22></path></svg>">
     
-    <!-- Link al Manifiesto de la App (generado con JS) -->
-    <link rel="manifest" id="app-manifest">
-    <!-- --- FIN DE CAMBIOS PWA --- -->
-
-    <style>
-        /* 2. Usar la fuente "Inter" para un look moderno */
+    <!-- Link al Manifiesto de la App (generado con JS) --><link rel="manifest" id="app-manifest">
+    <!-- --- FIN DE CAMBIOS PWA --- --><style>
         body {
             font-family: 'Inter', sans-serif;
         }
-        /* Añadir la fuente Inter desde Google Fonts */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         
-        /* 3. Estilo para el botón de "subir archivo" */
+        /* CAMBIO: Color del botón de subida */
         #file-upload-label {
             cursor: pointer;
             transition: all 0.2s ease-in-out;
+            background-color: #F9A825; /* Naranja del logo */
         }
         #file-upload-label:hover {
             opacity: 0.9;
+            background-color: #E6951A; /* Un tono un poco más oscuro al pasar el ratón */
         }
-        /* 4. Ocultar el input de archivo real */
         #file-input {
             display: none;
         }
-        /* 5. Asegurar que la barra de resumen no solape el contenido */
         #product-list {
-            padding-bottom: 12rem; /* Espacio para la barra de resumen y el carrito */
+            padding-bottom: 12rem;
         }
         
-        /* 6. Estilos para los botones +/- */
         .qty-btn {
-            width: 2.25rem; /* 36px */
-            height: 2.25rem; /* 36px */
-            border-radius: 9999px; /* Círculo completo */
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: 9999px;
             color: white;
             font-weight: bold;
-            font-size: 1.5rem; /* 24px */
-            line-height: 1; /* Centrar el - y + */
+            font-size: 1.5rem;
+            line-height: 1;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: opacity 0.2s;
-            -webkit-user-select: none; /* Evitar selección de texto en botones */
+            -webkit-user-select: none;
             user-select: none;
         }
         .qty-btn:active {
             opacity: 0.7;
         }
+        /* CAMBIO: Colores de los botones +/- */
+        .qty-btn.bg-red-500 { background-color: #EF4444; } /* Rojo existente */
+        .qty-btn.bg-green-600 { background-color: #F9A825; } /* Naranja del logo */
+        .qty-btn.bg-green-600:hover { background-color: #E6951A; } /* Naranja más oscuro al pasar ratón */
+
     </style>
 </head>
 <body class="bg-gray-100">
 
-    <!-- PANTALLA DE IMPORTACIÓN (Visible al inicio, si no hay datos guardados) -->
-    <div id="import-screen" class="min-h-screen flex items-center justify-center p-4">
+    <!-- PANTALLA DE IMPORTACIÓN --><div id="import-screen" class="min-h-screen flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md text-center">
-            <h1 class="text-2xl font-bold text-gray-800 mb-4">Calculadora de Ventas</h1>
+            <!-- CAMBIO: Icono como logo en la pantalla de importación --><div class="mb-4">
+                <img src="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%23F9A825%22></circle><path d=%22M75 35H25a5 5 0 0 0-5 5v30a5 5 0 0 0 5 5h50a5 5 0 0 0 5-5V40a5 5 0 0 0-5-5zM30 48h40v-8H30zM30 58h40v-8H30zM50 25l25 10H25l25-10z%22 fill=%22%23ffffff%22></path></svg>" 
+                     alt="Carjo Presupuestos Logo" class="w-24 h-24 mx-auto mb-4">
+            </div>
+            <h1 class="text-2xl font-bold text-gray-800 mb-4">Carjo Presupuestos</h1>
             <p class="text-gray-600 mb-6">Sube tu archivo .CSV o .XLSX de productos para empezar.</p>
 
-            <!-- Botón falso que activa el input de archivo real -->
-            <label for="file-input" id="file-upload-label" class="w-full bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md inline-block">
+            <label for="file-input" id="file-upload-label" class="w-full text-white font-semibold py-3 px-6 rounded-lg shadow-md inline-block hover:bg-opacity-90">
                 Importar Archivo .CSV / .XLSX
             </label>
-            <!-- Input de archivo real, oculto -->
             <input type="file" id="file-input" accept=".csv,.xlsx,.xls">
 
             <div class="mt-6 text-left bg-gray-50 p-4 rounded-lg border border-gray-200">
@@ -93,46 +89,36 @@
                     Componente,Precio PVP (€),Coste tras descuentos
                 </code>
             </div>
-            <!-- Mensaje de error -->
             <p id="error-message" class="text-red-500 text-sm mt-4 hidden"></p>
         </div>
     </div>
 
-    <!-- PANTALLA DE CALCULADORA (Oculta al inicio) -->
-    <div id="calculator-screen" class="hidden flex flex-col min-h-screen">
+    <!-- PANTALLA DE CALCULADORA --><div id="calculator-screen" class="hidden flex flex-col min-h-screen">
         
-        <!-- Cabecera -->
-        <header class="bg-white shadow-md p-4 sticky top-0 z-10 flex justify-between items-center">
+        <!-- Cabecera --><header class="bg-white shadow-md p-4 sticky top-0 z-10 flex justify-between items-center">
             <h1 class="text-xl font-bold text-gray-800">Seleccionar Productos</h1>
-            <button id="clear-data-button" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md text-sm hover:bg-blue-700 transition-colors">
+            <!-- CAMBIO: Color del botón de cargar nuevo --><button id="clear-data-button" class="bg-[#F9A825] text-white font-semibold py-2 px-4 rounded-lg shadow-md text-sm hover:bg-[#E6951A] transition-colors">
                 Cargar Nuevo
             </button>
         </header>
 
-        <!-- Buscador (Opcional, pero útil) -->
-        <div class="p-4 bg-white border-b border-gray-200">
-            <input type="text" id="search-box" placeholder="Buscar producto..." class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <!-- Buscador --><div class="p-4 bg-white border-b border-gray-200">
+            <input type="text" id="search-box" placeholder="Buscar producto..." class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F9A825]">
         </div>
 
-        <!-- Lista de Productos -->
-        <main id="product-list" class="flex-1 p-4 flex flex-col gap-2">
-            <!-- Los productos se añadirán aquí con JavaScript -->
-        </main>
+        <!-- Lista de Productos --><main id="product-list" class="flex-1 p-4 flex flex-col gap-2">
+            <!-- Los productos se añadirán aquí con JavaScript --></main>
 
-        <!-- Barra de Resumen y Carrito (Fija en la parte inferior) -->
-        <footer class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg p-4 z-10">
+        <!-- Barra de Resumen y Carrito (Fija en la parte inferior) --><footer class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg p-4 z-10">
             
-            <!-- Carrito/Items seleccionados -->
-            <div id="cart-items" class="max-h-32 overflow-y-auto mb-4 text-sm text-gray-700">
-                <!-- Los items del carrito se añadirán aquí -->
+            <!-- Carrito/Items seleccionados --><div id="cart-items" class="max-h-32 overflow-y-auto mb-4 text-sm text-gray-700">
                 <p id="cart-placeholder" class="text-gray-400 text-center">El carrito está vacío</p>
             </div>
             
-            <!-- Totales -->
-            <div class="grid grid-cols-3 gap-4 mb-4">
+            <!-- Totales --><div class="grid grid-cols-3 gap-4 mb-4">
                 <div class="text-center">
                     <span class="block text-xs font-medium text-gray-500 uppercase">Total</span>
-                    <span id="total-price" class="block text-lg font-bold text-blue-600">0.00 €</span>
+                    <!-- CAMBIO: Color del texto de total --><span id="total-price" class="block text-lg font-bold text-[#F9A825]">0.00 €</span>
                 </div>
                 <div class="text-center">
                     <span class="block text-xs font-medium text-gray-500 uppercase">Beneficio</span>
@@ -144,8 +130,7 @@
                 </div>
             </div>
 
-            <!-- Botón de Reinicio -->
-            <button id="reset-button" class="w-full bg-red-500 text-white font-semibold py-3 rounded-lg shadow-md hover:bg-red-600 transition-colors">
+            <!-- Botón de Reinicio --><button id="reset-button" class="w-full bg-red-500 text-white font-semibold py-3 rounded-lg shadow-md hover:bg-red-600 transition-colors">
                 Limpiar Carrito
             </button>
         </footer>
@@ -187,16 +172,18 @@
         function initializeApp() {
             // --- NUEVO: Generar el manifiesto de la PWA dinámicamente ---
             const manifest = {
-                "name": "Calculadora de Ventas",
-                "short_name": "Ventas",
+                "name": "Carjo Presupuestos",
+                "short_name": "Carjo",
                 "start_url": ".",
                 "display": "standalone",
                 "background_color": "#f3f4f6",
-                "theme_color": "#2563eb",
-                "description": "Calculadora de ventas a partir de un Excel.",
+                // CAMBIO: Color del tema en el manifiesto PWA
+                "theme_color": "#F9A825",
+                "description": "Calculadora de presupuestos a partir de un Excel.",
                 "icons": [
                     {
-                        "src": "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%232563eb%22></rect><rect x=%2220%22 y=%2220%22 width=%2260%22 height=%2215%22 rx=%225%22 fill=%22%23ffffff%22 opacity=%220.8%22></rect><rect x=%2220%22 y=%2245%22 width=%2210%22 height=%2210%22 rx=%223%22 fill=%22%23ffffff%22></rect><rect x=%2235%22 y=%2245%22 width=%2210%22 height=%2210%22 rx=%223%22 fill=%22%23ffffff%22></rect><rect x=%2250%22 y=%2245%22 width=%2210%22 height=%2210%22 rx=%223%22 fill=%22%23ffffff%22></rect><rect x=%2220%22 y=%2260%22 width=%2210%22 height=%2210%22 rx=%223%22 fill=%22%23ffffff%22></rect><rect x=%2235%22 y=%2260%22 width=%2210%22 height=%2210%22 rx=%223%22 fill=%22%23ffffff%22></rect><rect x=%2250%22 y=%2260%22 width=%2210%22 height=%2210%22 rx=%223%22 fill=%22%23ffffff%22></rect><rect x=%2265%22 y=%2245%22 width=%2215%22 height=%2225%22 rx=%223%22 fill=%22%23ffffff%22></rect></svg>",
+                        // CAMBIO: Icono en el manifiesto PWA
+                        "src": "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%23F9A825%22></circle><path d=%22M75 35H25a5 5 0 0 0-5 5v30a5 5 0 0 0 5 5h50a5 5 0 0 0 5-5V40a5 5 0 0 0-5-5zM30 48h40v-8H30zM30 58h40v-8H30zM50 25l25 10H25l25-10z%22 fill=%22%23ffffff%22></path></svg>",
                         "sizes": "192x192",
                         "type": "image/svg+xml"
                     }
@@ -372,7 +359,6 @@
 
             productsToDisplay.forEach(product => {
                 const card = document.createElement('div');
-                // --- CAMBIO A VISTA DE LISTA CON BOTONES +/- ---
                 card.className = "bg-white p-4 rounded-lg shadow-md flex justify-between items-center";
                 
                 const quantity = cart[product.id] || 0; // Obtener cantidad actual del carrito
@@ -380,7 +366,7 @@
                 card.innerHTML = `
                     <div class="flex-1 pr-4">
                         <h3 class="font-semibold text-gray-800 text-sm truncate">${product.nombre}</h3>
-                        <p class="text-blue-600 font-bold text-md">${product.precio.toFixed(2)} €</p>
+                        <p class="text-[#F9A825] font-bold text-md">${product.precio.toFixed(2)} €</p>
                     </div>
                     <div class="flex items-center gap-3">
                         <button class="qty-btn bg-red-500" onclick="decrementQuantity(event, '${product.id}')">-</button>
@@ -388,9 +374,7 @@
                         <button class="qty-btn bg-green-600" onclick="incrementQuantity(event, '${product.id}')">+</button>
                     </div>
                 `;
-                // --- FIN DE CAMBIO ---
                 
-                // Ya no se añade evento click a la tarjeta
                 productList.appendChild(card);
             });
         }
@@ -406,22 +390,13 @@
             displayProducts(filteredProducts);
         }
 
-        /**
-         * Añade un producto al carrito y actualiza el resumen.
-         */
-        // ESTA FUNCIÓN YA NO SE USA, LA DEJAMOS COMENTADA POR SI ACASO
-        // function addToCart(product) {
-        //     cart.push(product);
-        //     updateSummary();
-        // }
-
         // --- NUEVAS FUNCIONES PARA +/- ---
 
         /**
          * Incrementa la cantidad de un producto.
          */
         function incrementQuantity(event, productId) {
-            event.stopPropagation(); // Evitar clicks fantasma
+            event.stopPropagation();
             const currentQty = cart[productId] || 0;
             cart[productId] = currentQty + 1;
             
@@ -433,7 +408,7 @@
          * Decrementa la cantidad de un producto.
          */
         function decrementQuantity(event, productId) {
-            event.stopPropagation(); // Evitar clicks fantasma
+            event.stopPropagation();
             const currentQty = cart[productId] || 0;
             
             if (currentQty > 0) {
@@ -449,7 +424,6 @@
 
         /**
          * Actualiza solo el número (cantidad) en la lista de productos.
-         * Esto es mucho más rápido que volver a dibujar toda la lista.
          */
         function updateQuantityUI(productId) {
             const qtyEl = document.getElementById(`qty-${productId}`);
@@ -467,35 +441,29 @@
             let totalCost = 0;
             let totalItems = 0;
 
-            cartItemsContainer.innerHTML = ''; // Limpiar lista del carrito
-
-            // Comprobar si el carrito (objeto) está vacío
+            cartItemsContainer.innerHTML = '';
             if (Object.keys(cart).length === 0) {
                 cartItemsContainer.appendChild(cartPlaceholder);
                 cartPlaceholder.classList.remove('hidden');
             } else {
                 cartPlaceholder.classList.add('hidden');
                 
-                // Recorrer el objeto cart { productId: quantity }
                 for (const productId in cart) {
                     const quantity = cart[productId];
-                    if (quantity === 0) continue; // Saltar si la cantidad es 0
+                    if (quantity === 0) continue;
 
-                    // Encontrar el producto completo desde allProducts
                     const product = allProducts.find(p => p.id === productId);
-                    if (!product) continue; // Seguridad por si el producto no se encuentra
+                    if (!product) continue;
 
-                    // Calcular totales
                     totalPrice += product.precio * quantity;
                     totalCost += product.costo * quantity;
                     totalItems += quantity;
 
-                    // Mostrar en la lista de items del carrito
                     const itemEl = document.createElement('div');
                     itemEl.className = 'flex justify-between items-center py-1 px-2 even:bg-gray-50 rounded';
                     itemEl.innerHTML = `
                         <span>
-                            <span class="font-semibold text-blue-600">${quantity}x</span> ${product.nombre}
+                            <span class="font-semibold text-[#F9A825]">${quantity}x</span> ${product.nombre}
                         </span>
                         <span class="font-medium">${(product.precio * quantity).toFixed(2)} €</span>
                     `;
@@ -503,17 +471,12 @@
                 }
             }
 
-            // --- INICIO DE LA CORRECCIÓN ---
-            // Calcular el beneficio total ANTES de mostrarlo
             const totalProfit = totalPrice - totalCost;
-            // --- FIN DE LA CORRECCIÓN ---
 
-            // Actualizar los textos de los totales
             totalPriceEl.textContent = `${totalPrice.toFixed(2)} €`;
-            totalProfitEl.textContent = `${totalProfit.toFixed(2)} €`; // Esta línea ahora funciona
+            totalProfitEl.textContent = `${totalProfit.toFixed(2)} €`;
             totalItemsEl.textContent = totalItems;
 
-            // Guardar el carrito (objeto) en localStorage
             try {
                 localStorage.setItem('cart', JSON.stringify(cart));
             } catch (e) {
@@ -525,12 +488,10 @@
          * Resetea la calculadora.
          */
         function resetCalculator() {
-            cart = {}; // Ahora es un objeto vacío
-            localStorage.removeItem('cart'); // Limpiar carrito guardado
+            cart = {};
+            localStorage.removeItem('cart');
             updateSummary();
-            
-            // Recargar la lista de productos para que muestre 0 en las cantidades
-            filterProducts(); // Esto respeta el filtro de búsqueda actual
+            filterProducts();
         }
 
         /**
@@ -539,7 +500,6 @@
         function clearAllData() {
             localStorage.removeItem('allProducts');
             localStorage.removeItem('cart');
-            // Recargar la página para volver a la pantalla de importación
             location.reload();
         }
     </script>
