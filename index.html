@@ -483,6 +483,7 @@
 
         // --- 2. ESTADO DE LA APLICACIÓN ---
         let allProducts = []; // Guarda todos los productos del Excel
+        let productMap = {}; // OPTIMIZACIÓN: Acceso rápido a productos por ID
         let cart = {}; // Guarda los productos seleccionados { productId: quantity }
         let currentTotalPrice = 0; // Para el previo
         let VAT_RATE = 0.21; // 21% de IVA (valor por defecto, se actualiza en el summary)
@@ -540,6 +541,9 @@
             cancelClientInfoButton.addEventListener('click', () => clientInfoModalOverlay.classList.add('hidden'));
             confirmClientInfoButton.addEventListener('click', generateBudgetWithClientInfo);
 
+            // OPTIMIZACIÓN: Delegación de eventos para la lista de productos
+            productList.addEventListener('click', handleProductListClick);
+
 
             // Comprobar si hay productos guardados
             const savedProducts = localStorage.getItem('allProducts');
@@ -548,6 +552,11 @@
             if (savedProducts) {
                 try {
                     allProducts = JSON.parse(savedProducts);
+                    // OPTIMIZACIÓN: Crear el mapa de productos al cargar
+                    productMap = allProducts.reduce((map, product) => {
+                        map[product.id] = product;
+                        return map;
+                    }, {});
                     
                     if (savedCart) {
                         cart = JSON.parse(savedCart);
@@ -610,6 +619,7 @@
 
         function parseData(data) {
             allProducts = [];
+            productMap = {}; // Limpiar mapa
             if (data.length < 2) {
                 showError('El archivo está vacío o no tiene datos.');
                 return;
@@ -626,7 +636,7 @@
             const descIndex = header.indexOf('descripción');
             const brandIndex = header.indexOf('fabricante');
             const catIndex = header.indexOf('categoría');
-            const imgIndex = header.indexOf('imagen_fabricante'); // <-- IMAGEN AÑADIDA
+            const imgIndex = header.indexOf('imagen_fabricante');
 
             if (nameIndex === -1 || priceIndex === -1 || costIndex === -1) {
                 let missing = [];
@@ -646,7 +656,7 @@
                 const costo = parseFloat(row[costIndex]);
 
                 if (nombre && !isNaN(precioVenta) && !isNaN(costo)) {
-                    allProducts.push({
+                    const product = {
                         id: `prod-${i}`,
                         nombre: String(nombre).trim(),
                         precio: precioVenta,
@@ -654,8 +664,10 @@
                         descripcion: descIndex > -1 ? String(row[descIndex] || '').trim() : '',
                         fabricante: brandIndex > -1 ? String(row[brandIndex] || '').trim() : '',
                         categoria: catIndex > -1 ? String(row[catIndex] || '').trim() : '',
-                        imagen: imgIndex > -1 ? String(row[imgIndex] || '').trim() : '' // <-- IMAGEN AÑADIDA
-                    });
+                        imagen: imgIndex > -1 ? String(row[imgIndex] || '').trim() : ''
+                    };
+                    allProducts.push(product);
+                    productMap[product.id] = product; // OPTIMIZACIÓN: Poblar el mapa
                 }
             }
 
@@ -672,39 +684,45 @@
         // --- 5. LÓGICA DE RENDERIZADO (VISTAS) ---
 
         function displayProducts(productsToDisplay) {
-            productList.innerHTML = '';
+            productList.innerHTML = ''; // Limpiar lista
             
             if (productsToDisplay.length === 0) {
                 productList.innerHTML = '<p class="col-span-full text-center text-gray-500">No se encontraron productos.</p>';
                 return;
             }
 
+            const fragment = document.createDocumentFragment(); // Usar fragmento para mejor rendimiento
+
             productsToDisplay.forEach(product => {
                 const card = document.createElement('div');
                 card.className = "bg-white p-4 rounded-lg shadow-md flex items-center gap-4";
                 
-                const quantity = cart[product.id] || 0;
-                // Usamos el IVA por defecto (21%) para la vista de lista
-                const priceWithVat = product.precio * (1 + 0.21); 
+                // OPTIMIZACIÓN: Añadir data-attributes para delegación y filtrado
+                card.dataset.productId = product.id;
+                card.dataset.nombre = product.nombre.toLowerCase();
+                card.dataset.categoria = (product.categoria || '').toLowerCase();
+                card.dataset.fabricante = (product.fabricante || '').toLowerCase();
                 
-                // --- IMAGEN AÑADIDA DE NUEVO ---
+                const quantity = cart[product.id] || 0;
+                const priceWithVat = product.precio * (1 + 0.21); // IVA por defecto para la lista
+                
                 let imgHtml = '';
                 if (product.imagen) {
-                    imgHtml = `<img src="${product.imagen}" alt="${product.fabricante}" class="w-14 h-14 object-contain rounded-md bg-gray-50 border p-1" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-                               <div class="w-14 h-14 rounded-md bg-gray-100 flex items-center justify-center text-gray-400 border" style="display:none;">
+                    imgHtml = `<img src="${product.imagen}" alt="${product.fabricante}" class="w-14 h-14 object-contain rounded-md bg-gray-50 border p-1 product-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                               <div class="w-14 h-14 rounded-md bg-gray-100 flex items-center justify-center text-gray-400 border product-placeholder" style="display:none;">
                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm1.5-6a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" /></svg>
                                </div>`;
                 } else {
-                    imgHtml = `<div class="w-14 h-14 rounded-md bg-gray-100 flex items-center justify-center text-gray-400 border">
+                    imgHtml = `<div class="w-14 h-14 rounded-md bg-gray-100 flex items-center justify-center text-gray-400 border product-placeholder">
                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm1.5-6a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" /></svg>
                                </div>`;
                 }
-                // --- FIN IMAGEN AÑADIDA ---
-
+                
+                // OPTIMIZACIÓN: Quitar onclick= de los botones
                 card.innerHTML = `
                     ${imgHtml}
                     <div class="flex-1 min-w-0">
-                        <a href="#" class="block font-semibold text-gray-800 text-md truncate hover:underline" onclick="showProductModal(event, '${product.id}')">
+                        <a href="#" class="block font-semibold text-gray-800 text-md truncate hover:underline product-link">
                             ${product.nombre}
                         </a>
                         <div class"mt-1">
@@ -717,29 +735,79 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
-                        <button class="qty-btn bg-red-500" onclick="decrementQuantity(event, '${product.id}')">-</button>
+                        <button class="qty-btn bg-red-500 btn-decrement">-</button>
                         <span id="qty-${product.id}" class="font-bold text-lg w-8 text-center">${quantity}</span>
-                        <button class="qty-btn bg-green-600" onclick="incrementQuantity(event, '${product.id}')">+</button>
+                        <button class="qty-btn bg-green-600 btn-increment">+</button>
                     </div>
                 `;
                 
-                productList.appendChild(card);
+                fragment.appendChild(card);
             });
+            
+            productList.appendChild(fragment); // Añadir todos los elementos al DOM de una sola vez
         }
 
+        /**
+         * OPTIMIZACIÓN: Nueva función de filtrado rápido.
+         * En lugar de redibujar, solo oculta/muestra elementos.
+         */
         function filterProducts() {
             const query = searchBox.value.toLowerCase();
-            const filteredProducts = allProducts.filter(product => 
-                product.nombre.toLowerCase().includes(query) ||
-                (product.categoria && product.categoria.toLowerCase().includes(query)) ||
-                (product.fabricante && product.fabricante.toLowerCase().includes(query))
-            );
-            displayProducts(filteredProducts);
+            const products = productList.children;
+            let count = 0;
+
+            for (const productCard of products) {
+                // El primer hijo puede ser el <p> de "No se encontraron"
+                if (!productCard.dataset.productId) continue; 
+                
+                const nombre = productCard.dataset.nombre;
+                const categoria = productCard.dataset.categoria;
+                const fabricante = productCard.dataset.fabricante;
+
+                if (nombre.includes(query) || categoria.includes(query) || fabricante.includes(query)) {
+                    productCard.classList.remove('hidden');
+                    count++;
+                } else {
+                    productCard.classList.add('hidden');
+                }
+            }
         }
         
-        function showProductModal(event, productId) {
-            event.preventDefault(); 
-            const product = allProducts.find(p => p.id === productId);
+        /**
+         * OPTIMIZACIÓN: Nueva función para manejar todos los clics en la lista.
+         */
+        function handleProductListClick(event) {
+            const target = event.target;
+            
+            // Encontrar el producto (card) al que se hizo clic
+            const card = target.closest('[data-product-id]');
+            if (!card) return;
+            
+            const productId = card.dataset.productId;
+            
+            // Comprobar si se hizo clic en el botón +
+            if (target.closest('.btn-increment')) {
+                incrementQuantity(productId);
+                return;
+            }
+            
+            // Comprobar si se hizo clic en el botón -
+            if (target.closest('.btn-decrement')) {
+                decrementQuantity(productId);
+                return;
+            }
+            
+            // Comprobar si se hizo clic en el enlace del producto
+            if (target.closest('.product-link')) {
+                event.preventDefault(); // Evitar que el <a> navegue
+                showProductModal(productId);
+                return;
+            }
+        }
+
+        
+        function showProductModal(productId) {
+            const product = productMap[productId]; // OPTIMIZACIÓN: Búsqueda O(1)
             if (!product) return;
             
             // Usar 21% por defecto para la ficha de producto
@@ -753,7 +821,6 @@
                 detailsHtml += `<p class="text-md text-gray-600 mb-4"><span class="font-semibold">Categoría:</span> ${product.categoria}</p>`;
             }
 
-            // --- IMAGEN AÑADIDA DE NUEVO A LA FICHA ---
             let imgHtml = '';
             if (product.imagen) {
                 imgHtml = `<img src="${product.imagen}" alt="${product.fabricante}" class="w-full h-32 object-contain rounded-lg bg-gray-50 border p-2 mb-4" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
@@ -765,7 +832,6 @@
                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm1.5-6a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" /></svg>
                            </div>`;
             }
-            // --- FIN IMAGEN AÑADIDA ---
 
             productModalContent.innerHTML = `
                 ${imgHtml}
@@ -790,27 +856,33 @@
 
         // --- 6. LÓGICA DEL CARRITO ---
 
-        function incrementQuantity(event, productId) {
-            event.stopPropagation();
+        // OPTIMIZACIÓN: Quitar parámetro 'event'
+        function incrementQuantity(productId) {
             const currentQty = cart[productId] || 0;
             cart[productId] = currentQty + 1;
+            
             updateQuantityUI(productId);
             updateSummary();
         }
 
-        function decrementQuantity(event, productId) {
-            event.stopPropagation();
+        // OPTIMIZACIÓN: Quitar parámetro 'event'
+        function decrementQuantity(productId) {
             const currentQty = cart[productId] || 0;
+            
             if (currentQty > 0) {
                 cart[productId] = currentQty - 1;
                 if (cart[productId] === 0) {
                     delete cart[productId];
                 }
             }
+            
             updateQuantityUI(productId);
             updateSummary();
         }
 
+        /**
+         * Actualiza solo el número (cantidad) en la lista de productos.
+         */
         function updateQuantityUI(productId) {
             const qtyEl = document.getElementById(`qty-${productId}`);
             if (qtyEl) {
@@ -836,7 +908,8 @@
                 for (const productId in cart) {
                     const quantity = cart[productId];
                     if (quantity === 0) continue;
-                    const product = allProducts.find(p => p.id === productId);
+                    
+                    const product = productMap[productId]; // OPTIMIZACIÓN: Búsqueda O(1)
                     if (!product) continue;
 
                     totalPrice += product.precio * quantity;
@@ -863,7 +936,7 @@
             }
             
             currentTotalPrice = totalPrice; // Guardar para el previo
-            const totalProfit = totalPrice - totalCost; // CORRECCIÓN: Cálculo de totalProfit
+            const totalProfit = totalPrice - totalCost; 
             const totalPriceWithVat = totalPrice * (1 + currentVatRate);
 
             totalPriceEl.textContent = `${totalPrice.toFixed(2)} €`;
@@ -882,7 +955,18 @@
             cart = {};
             localStorage.removeItem('cart');
             updateSummary();
-            filterProducts(); 
+            
+            // OPTIMIZACIÓN: Resetear el filtro rápido en lugar de redibujar
+            const products = productList.children;
+            for (const productCard of products) {
+                if (!productCard.dataset.productId) continue; 
+                productCard.classList.remove('hidden');
+                // Resetear el contador de cantidad
+                const qtyEl = productCard.querySelector(`[id^="qty-"]`);
+                if(qtyEl) qtyEl.textContent = '0';
+            }
+            searchBox.value = ''; // Limpiar el buscador
+            
             profitBox.classList.add('censored'); 
         }
 
@@ -944,13 +1028,13 @@
             for (const productId in cart) {
                 const quantity = cart[productId];
                 if (quantity === 0) continue;
-                const product = allProducts.find(p => p.id === productId);
+                
+                const product = productMap[productId]; // OPTIMIZACIÓN: Búsqueda O(1)
                 if (!product) continue;
 
                 const lineTotal = product.precio * quantity;
                 totalPrice += lineTotal;
                 
-                // --- CAMBIO: Descripción del producto en la tabla ---
                 let descHtml = product.descripcion 
                     ? `<br><span style="font-size: 11px; color: #666; font-weight: 400;">${product.descripcion}</span>` 
                     : '';
@@ -964,12 +1048,10 @@
                                 <td class="text-right">${product.precio.toFixed(2)} €</td>
                                 <td class="text-right">${lineTotal.toFixed(2)} €</td>
                               </tr>`;
-                // --- FIN DEL CAMBIO ---
             }
             
             tableHtml += `</tbody></table>`;
             
-            // --- CAMBIO: Totales con nuevo diseño ---
             const vatAmount = totalPrice * ivaRate;
             const totalWithVat = totalPrice + vatAmount;
             
@@ -989,9 +1071,7 @@
                     </div>
                 </div>
             `;
-            // --- FIN CAMBIO TOTALES ---
 
-            // --- NUEVO: Pie de página del presupuesto ---
             const footerHtml = `
                 <div class="budget-footer">
                     <p><strong>Forma de pago:</strong> 50% a la aceptación del presupuesto, 50% al finalizar la instalación.</p>
@@ -999,9 +1079,7 @@
                     <p style="margin-top: 10px;">Gracias por su confianza en CARJO PUERTAS AUTOMATICAS.</p>
                 </div>
             `;
-            // --- FIN NUEVO PIE DE PÁGINA ---
             
-            // --- Montar la hoja ---
             budgetSheet.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #F9A825; padding-bottom: 15px;">
                     <img src="${logo}" alt="Logo Carjo" style="width: 80px; height: 80px;" />
@@ -1019,7 +1097,6 @@
                 ${footerHtml}
             `;
             
-            // Mostrar el modal
             budgetPreviewModalOverlay.classList.remove('hidden');
         }
         
