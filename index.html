@@ -4,25 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carjo Presupuestos</title>
-    <!-- 1. Carga de Tailwind CSS para estilos rápidos y modernos --><script src="https://cdn.tailwindcss.com"></script>
-    <!-- 2. Añadir la librería SheetJS (xlsx.js) para leer archivos Excel --><script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
-    <!-- --- Metadatos de App Web Progresiva (PWA) --- --><meta name="mobile-web-app-capable" content="yes">
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Carga de SheetJS (para leer .xlsx) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- Metadatos para App Web Progresiva (PWA) -->
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Carjo">
-    <!-- Color del tema (la barra superior del navegador) a naranja --><meta name="theme-color" content="#F9A825">
+    <meta name="theme-color" content="#F9A825">
     
-    <!-- Favicon (icono de la pestaña del navegador) usando el SVG del logo --><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%23F9A825%22></circle><path d=%22M75 35H25a5 5 0 0 0-5 5v30a5 5 0 0 0 5 5h50a5 5 0 0 0 5-5V40a5 5 0 0 0-5-5zM30 48h40v-8H30zM30 58h40v-8H30zM50 25l25 10H25l25-10z%22 fill=%22%23ffffff%22></path></svg>">
+    <!-- Favicon (generado a partir del logo) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%23F9A825%22></circle><path d=%22M75 35H25a5 5 0 0 0-5 5v30a5 5 0 0 0 5 5h50a5 5 0 0 0 5-5V40a5 5 0 0 0-5-5zM30 48h40v-8H30zM30 58h40v-8H30zM50 25l25 10H25l25-10z%22 fill=%22%23ffffff%22></path></svg>">
     
-    <!-- Link al Manifiesto de la App (generado con JS) --><link rel="manifest" id="app-manifest">
-    <!-- --- FIN DE CAMBIOS PWA --- --><style>
+    <!-- Manifiesto PWA (generado dinámicamente) -->
+    <link rel="manifest" id="app-manifest">
+    
+    <style>
         body {
             font-family: 'Inter', sans-serif;
         }
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         
-        /* Color del botón de subida */
         #file-upload-label {
             cursor: pointer;
             transition: all 0.2s ease-in-out;
@@ -30,13 +37,15 @@
         }
         #file-upload-label:hover {
             opacity: 0.9;
-            background-color: #E6951A; /* Un tono un poco más oscuro al pasar el ratón */
+            background-color: #E6951A;
         }
         #file-input {
             display: none;
         }
+        
+        /* Aumento de padding-bottom para que el footer no tape la lista */
         #product-list {
-            padding-bottom: 12rem;
+            padding-bottom: 22rem; /* Aumentado de 12rem a 22rem */
         }
         
         .qty-btn {
@@ -57,18 +66,40 @@
         .qty-btn:active {
             opacity: 0.7;
         }
-        /* REVERTIDO: Colores de los botones +/- */
-        .qty-btn.bg-red-500 { background-color: #EF4444; } /* Rojo existente */
-        .qty-btn.bg-green-600 { background-color: #22C55E; } /* Verde existente */
-        .qty-btn.bg-green-600:hover { background-color: #16A34A; } /* Verde más oscuro al pasar ratón */
+        .qty-btn.bg-red-500 { background-color: #EF4444; }
+        .qty-btn.bg-green-600 { background-color: #22C55E; }
+        .qty-btn.bg-green-600:hover { background-color: #16A34A; }
+
+        /* Estilos para el modal de confirmación */
+        #confirm-modal-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        /* Estilos para censurar el beneficio */
+        #profit-box.censored > #total-profit {
+            filter: blur(6px);
+            transition: filter 0.2s;
+            user-select: none;
+        }
+        #profit-box:not(.censored) > #total-profit {
+            filter: blur(0);
+            transition: filter 0.2s;
+        }
+        
+        /* Estilos para el modal de Ficha de Producto */
+        #product-modal-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
 
     </style>
 </head>
 <body class="bg-gray-100">
 
-    <!-- PANTALLA DE IMPORTACIÓN --><div id="import-screen" class="min-h-screen flex items-center justify-center p-4">
+    <!-- 1. PANTALLA DE IMPORTACIÓN -->
+    <div id="import-screen" class="min-h-screen flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md text-center">
-            <!-- Icono como logo en la pantalla de importación --><div class="mb-4">
+            
+            <div class="mb-4">
                 <img src="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%23F9A825%22></circle><path d=%22M75 35H25a5 5 0 0 0-5 5v30a5 5 0 0 0 5 5h50a5 5 0 0 0 5-5V40a5 5 0 0 0-5-5zM30 48h40v-8H30zM30 58h40v-8H30zM50 25l25 10H25l25-10z%22 fill=%22%23ffffff%22></path></svg>" 
                      alt="Carjo Presupuestos Logo" class="w-24 h-24 mx-auto mb-4">
             </div>
@@ -80,40 +111,51 @@
             </label>
             <input type="file" id="file-input" accept=".csv,.xlsx,.xls">
 
-            <!-- BLOQUE ELIMINADO -->
             <p id="error-message" class="text-red-500 text-sm mt-4 hidden"></p>
         </div>
     </div>
 
-    <!-- PANTALLA DE CALCULADORA --><div id="calculator-screen" class="hidden flex flex-col min-h-screen">
+    <!-- 2. PANTALLA DE LA CALCULADORA -->
+    <div id="calculator-screen" class="hidden flex flex-col min-h-screen">
         
-        <!-- Cabecera --><header class="bg-white shadow-md p-4 sticky top-0 z-10 flex justify-between items-center">
+        <!-- Cabecera -->
+        <header class="bg-white shadow-md p-4 sticky top-0 z-10 flex justify-between items-center">
             <h1 class="text-xl font-bold text-gray-800">Seleccionar Productos</h1>
-            <!-- Color del botón de cargar nuevo --><button id="clear-data-button" class="bg-[#F9A825] text-white font-semibold py-2 px-4 rounded-lg shadow-md text-sm hover:bg-[#E6951A] transition-colors">
+            <button id="clear-data-button" class="bg-[#F9A825] text-white font-semibold py-2 px-4 rounded-lg shadow-md text-sm hover:bg-[#E6951A] transition-colors">
                 Cargar Nuevo
             </button>
         </header>
 
-        <!-- Buscador --><div class="p-4 bg-white border-b border-gray-200">
+        <!-- Buscador -->
+        <div class="p-4 bg-white border-b border-gray-200">
             <input type="text" id="search-box" placeholder="Buscar producto..." class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F9A825]">
         </div>
 
-        <!-- Lista de Productos --><main id="product-list" class="flex-1 p-4 flex flex-col gap-2">
-            <!-- Los productos se añadirán aquí con JavaScript --></main>
+        <!-- Lista de Productos -->
+        <main id="product-list" class="flex-1 p-4 flex flex-col gap-3">
+            <!-- Los productos se inyectan aquí con JS -->
+        </main>
 
-        <!-- Barra de Resumen y Carrito (Fija en la parte inferior) --><footer class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg p-4 z-10">
+        <!-- Pie de página (Resumen y Totales) -->
+        <footer class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg p-4 z-10">
             
-            <!-- Carrito/Items seleccionados --><div id="cart-items" class="max-h-32 overflow-y-auto mb-4 text-sm text-gray-700">
+            <!-- Lista del Carrito (desplegable) -->
+            <div id="cart-items" class="max-h-32 overflow-y-auto mb-4 text-sm text-gray-700">
                 <p id="cart-placeholder" class="text-gray-400 text-center">El carrito está vacío</p>
             </div>
             
-            <!-- Totales --><div class="grid grid-cols-3 gap-4 mb-4">
+            <!-- Resumen de Totales (cuadrícula 2x2) -->
+            <div class="grid grid-cols-2 gap-4 mb-4">
                 <div class="text-center">
-                    <span class="block text-xs font-medium text-gray-500 uppercase">Total</span>
-                    <!-- REVERTIDO: Color del texto de total --><span id="total-price" class="block text-lg font-bold text-blue-600">0.00 €</span>
+                    <span class="block text-xs font-medium text-gray-500 uppercase">Total (Base)</span>
+                    <span id="total-price" class="block text-lg font-bold text-blue-600">0.00 €</span>
                 </div>
-                <div class="text-center">
-                    <span class="block text-xs font-medium text-gray-500 uppercase">Beneficio</span>
+                 <div class="text-center">
+                    <span class="block text-xs font-medium text-gray-500 uppercase">Total (IVA incl.)</span>
+                    <span id="total-price-vat" class="block text-lg font-bold text-gray-900">0.00 €</span>
+                </div>
+                <div id="profit-box" class="text-center cursor-pointer censored">
+                    <span class="block text-xs font-medium text-gray-500 uppercase">Beneficio (tocar para ver)</span>
                     <span id="total-profit" class="block text-lg font-bold text-green-600">0.00 €</span>
                 </div>
                 <div class="text-center">
@@ -122,11 +164,44 @@
                 </div>
             </div>
 
-            <!-- Botón de Reinicio --><button id="reset-button" class="w-full bg-red-500 text-white font-semibold py-3 rounded-lg shadow-md hover:bg-red-600 transition-colors">
+            <!-- Botón Limpiar Carrito -->
+            <button id="reset-button" class="w-full bg-red-500 text-white font-semibold py-3 rounded-lg shadow-md hover:bg-red-600 transition-colors">
                 Limpiar Carrito
             </button>
         </footer>
     </div>
+    
+    <!-- 3. MODAL DE CONFIRMACIÓN (para "Cargar Nuevo") -->
+    <div id="confirm-modal-overlay" class="fixed inset-0 z-20 flex items-center justify-center p-4 hidden">
+        <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm">
+            <h2 class="text-lg font-bold text-gray-900 mb-4">¿Estás seguro?</h2>
+            <p class="text-gray-600 mb-6">Si cargas un nuevo archivo, se borrarán todos los productos y el carrito actual.</p>
+            <div class="flex justify-end gap-3">
+                <button id="cancel-clear-button" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">
+                    Cancelar
+                </button>
+                <button id="confirm-clear-button" class="bg-red-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-600">
+                    Sí, Cargar Nuevo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. MODAL DE FICHA DE PRODUCTO -->
+    <div id="product-modal-overlay" class="fixed inset-0 z-30 flex items-center justify-center p-4 hidden">
+        <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-lg max-h-[80vh] flex flex-col">
+            <!-- Contenido de la ficha -->
+            <div id="product-modal-content" class="flex-1 overflow-y-auto">
+                <!-- El contenido se inyecta con JS -->
+            </div>
+            
+            <!-- Botón de cerrar -->
+            <button id="close-modal-button" class="mt-6 w-full bg-gray-600 text-white font-semibold py-3 rounded-lg shadow-md hover:bg-gray-700 transition-colors">
+                Cerrar
+            </button>
+        </div>
+    </div>
+
 
     <script>
         // --- 1. REFERENCIAS A ELEMENTOS DEL DOM ---
@@ -141,57 +216,71 @@
         const cartItemsContainer = document.getElementById('cart-items');
         const cartPlaceholder = document.getElementById('cart-placeholder');
         const totalPriceEl = document.getElementById('total-price');
+        const totalPriceVatEl = document.getElementById('total-price-vat');
         const totalProfitEl = document.getElementById('total-profit');
         const totalItemsEl = document.getElementById('total-items');
+        const profitBox = document.getElementById('profit-box');
         const resetButton = document.getElementById('reset-button');
         const appManifest = document.getElementById('app-manifest');
 
+        // Modal de Confirmación
+        const confirmModalOverlay = document.getElementById('confirm-modal-overlay');
+        const cancelClearButton = document.getElementById('cancel-clear-button');
+        const confirmClearButton = document.getElementById('confirm-clear-button');
+
+        // Modal de Ficha de Producto
+        const productModalOverlay = document.getElementById('product-modal-overlay');
+        const productModalContent = document.getElementById('product-modal-content');
+        const closeModalButton = document.getElementById('close-modal-button');
+
         // --- 2. ESTADO DE LA APLICACIÓN ---
-        let allProducts = []; // Guarda todos los productos del CSV
+        let allProducts = []; // Guarda todos los productos del Excel
         let cart = {}; // Guarda los productos seleccionados { productId: quantity }
+        const VAT_RATE = 0.21; // 21% de IVA
 
-        // --- 3. EVENT LISTENERS ---
-        // Se añaden en initializeApp() después de que el DOM esté cargado
-
-        // --- 4. LÓGICA DE INICIALIZACIÓN ---
-        
-        /**
-         * Se ejecuta cuando el contenido de la página se ha cargado.
-         * Comprueba localStorage para cargar datos guardados.
-         */
+        // --- 3. LÓGICA DE INICIALIZACIÓN ---
         document.addEventListener('DOMContentLoaded', initializeApp);
 
         function initializeApp() {
-            // --- NUEVO: Generar el manifiesto de la PWA dinámicamente ---
+            // Generar el manifiesto de la PWA dinámicamente
             const manifest = {
                 "name": "Carjo Presupuestos",
                 "short_name": "Carjo",
                 "start_url": ".",
                 "display": "standalone",
                 "background_color": "#f3f4f6",
-                // Color del tema en el manifiesto PWA
                 "theme_color": "#F9A825",
                 "description": "Calculadora de presupuestos a partir de un Excel.",
                 "icons": [
                     {
-                        // Icono en el manifiesto PWA
                         "src": "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%23F9A825%22></circle><path d=%22M75 35H25a5 5 0 0 0-5 5v30a5 5 0 0 0 5 5h50a5 5 0 0 0 5-5V40a5 5 0 0 0-5-5zM30 48h40v-8H30zM30 58h40v-8H30zM50 25l25 10H25l25-10z%22 fill=%22%23ffffff%22></path></svg>",
                         "sizes": "192x192",
                         "type": "image/svg+xml"
                     }
                 ]
             };
-            // Convertir el JSON en un Data URI y asignarlo al link
             const manifestString = JSON.stringify(manifest);
             appManifest.href = 'data:application/json;base64,' + btoa(unescape(encodeURIComponent(manifestString)));
-            // --- FIN DE CAMBIO PWA ---
-
 
             // Asignar listeners
             fileInput.addEventListener('change', handleFileSelect);
             resetButton.addEventListener('click', resetCalculator);
             searchBox.addEventListener('input', filterProducts);
-            clearDataButton.addEventListener('click', clearAllData);
+            profitBox.addEventListener('click', toggleProfitVisibility);
+            
+            // Listeners del modal de confirmación
+            clearDataButton.addEventListener('click', () => confirmModalOverlay.classList.remove('hidden'));
+            cancelClearButton.addEventListener('click', () => confirmModalOverlay.classList.add('hidden'));
+            confirmClearButton.addEventListener('click', clearAllData);
+            
+            // Listeners del modal de ficha de producto
+            closeModalButton.addEventListener('click', () => productModalOverlay.classList.add('hidden'));
+            productModalOverlay.addEventListener('click', (e) => {
+                // Cierra si se hace clic en el fondo oscuro
+                if (e.target === productModalOverlay) {
+                    productModalOverlay.classList.add('hidden');
+                }
+            });
 
             // Comprobar si hay productos guardados
             const savedProducts = localStorage.getItem('allProducts');
@@ -200,12 +289,13 @@
             if (savedProducts) {
                 try {
                     allProducts = JSON.parse(savedProducts);
-                    displayProducts(allProducts);
-
+                    
                     if (savedCart) {
                         cart = JSON.parse(savedCart);
-                        updateSummary();
                     }
+                    
+                    displayProducts(allProducts); // Mostrar productos antes de actualizar el resumen
+                    updateSummary(); // Actualizar carrito y totales
 
                     // Saltar la pantalla de importación
                     importScreen.classList.add('hidden');
@@ -213,50 +303,38 @@
                     calculatorScreen.classList.add('flex');
                 } catch (e) {
                     console.error("Error al parsear datos de localStorage", e);
-                    // Si hay error, limpiar localStorage y mostrar importación
-                    clearAllData();
+                    clearAllData(); // Si hay error, limpiar todo
                 }
             }
-            // Si no hay productos guardados, la app se inicia normalmente
-            // mostrando la pantalla de importación.
         }
         
-        // --- 5. LÓGICA DE LA APLICACIÓN ---
+        // --- 4. LÓGICA DE LECTURA DE ARCHIVO ---
 
-        /**
-         * Maneja la selección del archivo CSV.
-         */
         function handleFileSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
 
-            // Validar que es un CSV o XLSX
             if (!file.name.endsWith('.csv') && !file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
                 showError('Por favor, sube un archivo .csv o .xlsx');
                 return;
             }
             
-            errorMessage.classList.add('hidden'); // Ocultar errores previos
-
+            errorMessage.classList.add('hidden');
             const reader = new FileReader();
             
             reader.onload = function(e) {
                 try {
                     const data = new Uint8Array(e.target.result);
-                    // Usar SheetJS para leer el archivo (funciona para CSV y XLSX)
                     const workbook = XLSX.read(data, { type: 'array' });
-                    
-                    const sheetName = workbook.SheetNames[0]; // Tomar la primera hoja
+                    const sheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[sheetName];
-                    
-                    // Convertir la hoja en un array de arrays
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
                     
                     parseData(jsonData);
 
                 } catch (err) {
                     console.error(err);
-                    showError('Error al procesar el archivo. Asegúrate de que el formato es correcto.');
+                    showError('Error al procesar el archivo.');
                 }
             };
             
@@ -264,83 +342,82 @@
                 showError('No se pudo leer el archivo.');
             };
             
-            // Leer siempre como ArrayBuffer, SheetJS lo maneja
             reader.readAsArrayBuffer(file);
         }
 
-        /**
-         * Muestra un mensaje de error.
-         */
         function showError(message) {
             errorMessage.textContent = message;
             errorMessage.classList.remove('hidden');
         }
 
-        /**
-         * Parsea los datos (array de arrays de SheetJS) y los convierte en productos.
-         */
         function parseData(data) {
             allProducts = [];
             if (data.length < 2) {
-                showError('El archivo está vacío o no tiene filas de datos.');
+                showError('El archivo está vacío o no tiene datos.');
                 return;
             }
 
-            // 1. Encontrar la cabecera y los índices de las columnas
             const header = data[0].map(h => String(h).toLowerCase().trim());
             
+            // Columnas requeridas
             const nameIndex = header.indexOf('componente');
             const priceIndex = header.indexOf('precio pvp (€)');
             const costIndex = header.indexOf('coste tras descuentos');
 
-            // 2. Validar que encontramos las columnas necesarias
+            // Columnas opcionales (para la ficha de producto)
+            const descIndex = header.indexOf('descripción');
+            const brandIndex = header.indexOf('fabricante');
+            const catIndex = header.indexOf('categoría');
+            const imgIndex = header.indexOf('imagen_fabricante'); // <-- AÑADIDA
+
             if (nameIndex === -1 || priceIndex === -1 || costIndex === -1) {
                 let missing = [];
                 if (nameIndex === -1) missing.push('"componente"');
                 if (priceIndex === -1) missing.push('"precio pvp (€)"');
                 if (costIndex === -1) missing.push('"coste tras descuentos"');
-                showError(`El archivo no tiene las columnas requeridas: ${missing.join(', ')}.`);
+                showError(`Faltan columnas requeridas: ${missing.join(', ')}.`);
                 return;
             }
 
-            // 3. Iterar por las filas de datos (empezar en 1 para saltar cabecera)
             for (let i = 1; i < data.length; i++) {
                 const row = data[i];
-                if (!row || row.length === 0) continue; // Saltar filas vacías
+                if (!row || row.length === 0) continue;
 
                 const nombre = row[nameIndex];
                 const precioVenta = parseFloat(row[priceIndex]);
                 const costo = parseFloat(row[costIndex]);
 
-                // 4. Validar datos de la fila
                 if (nombre && !isNaN(precioVenta) && !isNaN(costo)) {
                     allProducts.push({
                         id: `prod-${i}`,
                         nombre: String(nombre).trim(),
                         precio: precioVenta,
-                        costo: costo
+                        costo: costo,
+                        // Añadimos datos opcionales
+                        descripcion: descIndex > -1 ? String(row[descIndex] || '').trim() : '',
+                        fabricante: brandIndex > -1 ? String(row[brandIndex] || '').trim() : '',
+                        categoria: catIndex > -1 ? String(row[catIndex] || '').trim() : '',
+                        imagen: imgIndex > -1 ? String(row[imgIndex] || '').trim() : '' // <-- AÑADIDA
                     });
                 }
             }
 
-            // Éxito: Guardar en localStorage
-            try {
-                localStorage.setItem('allProducts', JSON.stringify(allProducts));
-            } catch (e) {
-                console.error("Error al guardar en localStorage", e);
-                showError('No se pudieron guardar los productos. Puede que el almacenamiento esté lleno.');
-            }
+            localStorage.setItem('allProducts', JSON.stringify(allProducts));
+            
+            // Limpiar carrito al cargar nuevo archivo
+            cart = {};
+            localStorage.removeItem('cart');
 
-            // Cambiar de pantalla y mostrar productos
             displayProducts(allProducts);
+            updateSummary(); // Actualizar totales (que estarán a 0)
+
             importScreen.classList.add('hidden');
             calculatorScreen.classList.remove('hidden');
             calculatorScreen.classList.add('flex');
         }
 
-        /**
-         * Muestra los productos en la cuadrícula.
-         */
+        // --- 5. LÓGICA DE RENDERIZADO (VISTAS) ---
+
         function displayProducts(productsToDisplay) {
             productList.innerHTML = '';
             
@@ -351,14 +428,34 @@
 
             productsToDisplay.forEach(product => {
                 const card = document.createElement('div');
-                card.className = "bg-white p-4 rounded-lg shadow-md flex justify-between items-center";
+                // AÑADIDA IMAGEN: volvemos al flex con gap
+                card.className = "bg-white p-4 rounded-lg shadow-md flex items-center gap-4";
                 
                 const quantity = cart[product.id] || 0;
+                const priceWithVat = product.precio * (1 + VAT_RATE);
                 
+                // Icono por defecto si no hay imagen
+                // (Usamos un SVG simple como placeholder)
+                const imageHtml = product.imagen
+                    ? `<img src="${product.imagen}" alt="${product.nombre}" class="w-14 h-14 object-contain rounded-md bg-gray-100" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 24 24%22 stroke-width=%221.5%22 stroke=%22currentColor%22 class=%22w-6 h-6 text-gray-400%22%3E%3Cpath stroke-linecap=%22round%22 stroke-linejoin=%22round%22 d=%22m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm1.5-6.75h.008v.008H4.5v-.008Z%22 /%3E%3C/svg%3E'; this.onerror=null; this.classList.add('p-4');" />`
+                    : `<div class="w-14 h-14 rounded-md bg-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm1.5-6.75h.008v.008H4.5v-.008Z" /></svg>
+                       </div>`;
+
                 card.innerHTML = `
-                    <div class="flex-1 pr-4">
-                        <h3 class="font-semibold text-gray-800 text-sm truncate">${product.nombre}</h3>
-                        <p class="text-blue-600 font-bold text-md">${product.precio.toFixed(2)} €</p>
+                    ${imageHtml}
+                    <div class="flex-1 min-w-0">
+                        <a href="#" class="block font-semibold text-gray-800 text-md truncate hover:underline" onclick="showProductModal(event, '${product.id}')">
+                            ${product.nombre}
+                        </a>
+                        <div class"mt-1">
+                            <p class="text-blue-600 font-semibold text-xs">
+                                ${product.precio.toFixed(2)} € <span class="text-gray-500 font-normal">(Base)</span>
+                            </p>
+                            <p class="text-gray-900 font-bold text-md">
+                                ${priceWithVat.toFixed(2)} € <span class="text-gray-600 font-normal text-xs">(IVA incl.)</span>
+                            </p>
+                        </div>
                     </div>
                     <div class="flex items-center gap-3">
                         <button class="qty-btn bg-red-500" onclick="decrementQuantity(event, '${product.id}')">-</button>
@@ -371,9 +468,6 @@
             });
         }
 
-        /**
-         * Filtra los productos basados en el buscador.
-         */
         function filterProducts() {
             const query = searchBox.value.toLowerCase();
             const filteredProducts = allProducts.filter(product => 
@@ -381,12 +475,57 @@
             );
             displayProducts(filteredProducts);
         }
+        
+        function showProductModal(event, productId) {
+            event.preventDefault(); // Evitar que el enlace "#" mueva la página
+            const product = allProducts.find(p => p.id === productId);
+            if (!product) return;
+            
+            const priceWithVat = product.precio * (1 + VAT_RATE);
+            
+            // Info de Fabricante y Categoría (si existen)
+            let detailsHtml = '';
+            if (product.fabricante) {
+                detailsHtml += `<p class="text-md text-gray-600 mb-1"><span class="font-semibold">Fabricante:</span> ${product.fabricante}</p>`;
+            }
+            if (product.categoria) {
+                detailsHtml += `<p class="text-md text-gray-600 mb-4"><span class="font-semibold">Categoría:</span> ${product.categoria}</p>`;
+            }
 
-        // --- NUEVAS FUNCIONES PARA +/- ---
+            // AÑADIDA IMAGEN: Placeholder para la ficha
+            const imageHtml = product.imagen
+                ? `<img src="${product.imagen}" alt="${product.nombre}" class="w-full h-48 object-contain rounded-lg bg-gray-100 mb-4" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 24 24%22 stroke-width=%221.5%22 stroke=%22currentColor%22 class=%22w-6 h-6 text-gray-400%22%3E%3Cpath stroke-linecap=%22round%22 stroke-linejoin=%22round%22 d=%22m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm1.5-6.75h.008v.008H4.5v-.008Z%22 /%3E%3C/svg%3E'; this.onerror=null; this.classList.add('p-12');" />`
+                : `<div class="w-full h-48 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm1.5-6.75h.008v.008H4.5v-.008Z" /></svg>
+                   </div>`;
 
-        /**
-         * Incrementa la cantidad de un producto.
-         */
+
+            productModalContent.innerHTML = `
+                ${imageHtml}
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">${product.nombre}</h2>
+                
+                ${detailsHtml}
+                
+                <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                    <p class="text-blue-600 font-semibold text-sm">
+                        ${product.precio.toFixed(2)} € <span class="text-gray-500 font-normal">(Base)</span>
+                    </p>
+                    <p class="text-gray-900 font-bold text-lg">
+                        ${priceWithVat.toFixed(2)} € <span class="text-gray-600 font-normal text-sm">(IVA incl.)</span>
+                    </p>
+                </div>
+                
+                ${product.descripcion ? `
+                    <h3 class="font-semibold text-gray-800 mb-2">Descripción</h3>
+                    <p class="text-gray-600 whitespace-pre-wrap">${product.descripcion}</p>
+                ` : ''}
+            `;
+            productModalOverlay.classList.remove('hidden');
+        }
+
+
+        // --- 6. LÓGICA DEL CARRITO ---
+
         function incrementQuantity(event, productId) {
             event.stopPropagation();
             const currentQty = cart[productId] || 0;
@@ -396,9 +535,6 @@
             updateSummary();
         }
 
-        /**
-         * Decrementa la cantidad de un producto.
-         */
         function decrementQuantity(event, productId) {
             event.stopPropagation();
             const currentQty = cart[productId] || 0;
@@ -414,9 +550,6 @@
             updateSummary();
         }
 
-        /**
-         * Actualiza solo el número (cantidad) en la lista de productos.
-         */
         function updateQuantityUI(productId) {
             const qtyEl = document.getElementById(`qty-${productId}`);
             if (qtyEl) {
@@ -424,10 +557,6 @@
             }
         }
 
-
-        /**
-         * Actualiza los totales y la lista del carrito.
-         */
         function updateSummary() {
             let totalPrice = 0;
             let totalCost = 0;
@@ -451,21 +580,29 @@
                     totalCost += product.costo * quantity;
                     totalItems += quantity;
 
+                    const itemPriceVat = (product.precio * quantity) * (1 + VAT_RATE);
+
                     const itemEl = document.createElement('div');
                     itemEl.className = 'flex justify-between items-center py-1 px-2 even:bg-gray-50 rounded';
                     itemEl.innerHTML = `
-                        <span>
-                            <span class="font-semibold text-blue-600">${quantity}x</span> ${product.nombre}
+                        <span class="flex-1 min-w-0 pr-2">
+                            <span class="font-semibold text-blue-600">${quantity}x</span> 
+                            <span class="truncate">${product.nombre}</span>
                         </span>
-                        <span class="font-medium">${(product.precio * quantity).toFixed(2)} €</span>
+                        <span class="font-medium text-right">
+                            <span class="block text-blue-600 text-xs">${(product.precio * quantity).toFixed(2)} € <span class="text-gray-500">(Base)</span></span>
+                            <span class="block text-gray-900 text-sm font-semibold">${itemPriceVat.toFixed(2)} € <span class="text-gray-600 text-xs">(IVA incl.)</span></span>
+                        </span>
                     `;
                     cartItemsContainer.appendChild(itemEl);
                 }
             }
 
             const totalProfit = totalPrice - totalCost;
+            const totalPriceWithVat = totalPrice * (1 + VAT_RATE);
 
             totalPriceEl.textContent = `${totalPrice.toFixed(2)} €`;
+            totalPriceVatEl.textContent = `${totalPriceWithVat.toFixed(2)} €`;
             totalProfitEl.textContent = `${totalProfit.toFixed(2)} €`;
             totalItemsEl.textContent = totalItems;
 
@@ -476,26 +613,24 @@
             }
         }
 
-        /**
-         * Resetea la calculadora.
-         */
         function resetCalculator() {
             cart = {};
             localStorage.removeItem('cart');
             updateSummary();
-            filterProducts();
+            filterProducts(); // Actualiza la UI de la lista de productos (pone contadores a 0)
+            profitBox.classList.add('censored'); // Vuelve a censurar el beneficio
         }
 
-        /**
-         * Borra todos los datos guardados y recarga la app.
-         */
         function clearAllData() {
             localStorage.removeItem('allProducts');
             localStorage.removeItem('cart');
-            location.reload();
+            location.reload(); // Recarga la app a la pantalla de importación
+        }
+        
+        function toggleProfitVisibility() {
+            profitBox.classList.toggle('censored');
         }
     </script>
 </body>
 </html>
-
 
