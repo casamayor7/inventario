@@ -97,12 +97,21 @@
         }
         
         #budget-sheet {
-            width: 210mm; /* Simular A4 */
-            min-height: 297mm;
-            padding: 15mm;
+            /* CAMBIO: Ancho responsive */
+            width: 100%; /* Ocupa el 100% del modal, que tiene max-w-4xl */
+            min-height: 0; /* Quitamos la altura mínima de A4 */
+            padding: 1.5rem; /* Padding para móvil */
             box-shadow: 0 0 10px rgba(0,0,0,0.5);
             background-color: #ffffff; /* Fondo blanco para la hoja */
             color: #333; /* Color de texto base */
+        }
+        /* En pantallas grandes (PC), simulamos el A4 */
+        @media (min-width: 1024px) {
+            #budget-sheet {
+                width: 210mm;
+                min-height: 297mm;
+                padding: 15mm;
+            }
         }
         
         /* Estilos MEJORADOS para la tabla del presupuesto */
@@ -141,11 +150,18 @@
 
         /* Contenedor de totales MEJORADO */
         .budget-totals-container {
-            width: 50%;
+            width: 100%; /* Ancho completo en móvil */
             margin-left: auto; /* Alineado a la derecha */
             margin-top: 25px;
             font-size: 14px;
         }
+        /* En PC, más estrecho y a la derecha */
+        @media (min-width: 640px) {
+            .budget-totals-container {
+                width: 50%;
+            }
+        }
+
         .totals-row {
             display: flex;
             justify-content: space-between;
@@ -218,16 +234,16 @@
                 color: #000; /* Asegurar texto negro en impresión */
                 border: none;
             }
-            /* Quitar fondo de color en impresión (ahorra tinta) */
+            /* CAMBIO: Forzar impresión de colores */
             #budget-table th {
-                background-color: #f2f2f2 !important;
-                color: #000 !important;
+                background-color: #F9A825 !important;
+                color: white !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
             .totals-row.final {
-                background-color: #f2f2f2 !important;
-                color: #000 !important;
+                background-color: #F9A825 !important;
+                color: white !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
