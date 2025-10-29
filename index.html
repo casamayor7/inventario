@@ -27,6 +27,7 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Fondo gris claro para la app */
         }
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         
@@ -43,9 +44,8 @@
             display: none;
         }
         
-        /* Aumento de padding-bottom para que el footer no tape la lista */
         #product-list {
-            padding-bottom: 22rem; /* Aumentado de 12rem a 22rem */
+            padding-bottom: 22rem; 
         }
         
         .qty-btn {
@@ -68,7 +68,7 @@
         }
         .qty-btn.bg-red-500 { background-color: #EF4444; }
         .qty-btn.bg-green-600 { background-color: #22C55E; }
-        .qty-btn.bg-green-600:hover { background-color: #16A34A; }
+        .qty-btn.bg-green-600:hover { background-color: #16A43A; }
 
         /* Estilos para el modal de confirmación */
         #confirm-modal-overlay {
@@ -89,6 +89,148 @@
         /* Estilos para el modal de Ficha de Producto */
         #product-modal-overlay {
             background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        /* --- ESTILOS MEJORADOS PARA EL PRESUPUESTO --- */
+        #budget-preview-modal-overlay {
+            background-color: rgba(0, 0, 0, 0.75);
+        }
+        
+        #budget-sheet {
+            width: 210mm; /* Simular A4 */
+            min-height: 297mm;
+            padding: 15mm;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            background-color: #ffffff; /* Fondo blanco para la hoja */
+            color: #333; /* Color de texto base */
+        }
+        
+        /* Estilos MEJORADOS para la tabla del presupuesto */
+        #budget-table {
+            width: 100%;
+            border-collapse: collapse; /* Quitamos espacios entre bordes */
+            margin-top: 25px;
+            font-size: 13px; /* Aumentamos tamaño de fuente base de la tabla */
+        }
+        #budget-table th {
+            /* Cabecera con color de marca */
+            background-color: #F9A825;
+            color: white;
+            padding: 12px 15px; /* Más espaciado */
+            text-align: left;
+            font-weight: 600; /* Semigrueso */
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            border: none; /* Sin bordes en la cabecera */
+        }
+        #budget-table td {
+            border: none; /* Sin bordes laterales */
+            border-bottom: 1px solid #eee; /* Solo borde inferior */
+            padding: 12px 15px; /* Más espaciado */
+            vertical-align: top; 
+        }
+        /* Color de la última fila de la tabla */
+        #budget-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        #budget-table td.text-right, #budget-table th.text-right {
+            text-align: right;
+        }
+
+        /* Contenedor de totales MEJORADO */
+        .budget-totals-container {
+            width: 50%;
+            margin-left: auto; /* Alineado a la derecha */
+            margin-top: 25px;
+            font-size: 14px;
+        }
+        .totals-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .totals-row span:last-child {
+            font-weight: 600;
+            color: #111;
+        }
+        /* Fila final de TOTAL (IVA incl.) MEJORADA */
+        .totals-row.final {
+            margin-top: 10px;
+            padding: 14px;
+            background-color: #F9A825; /* Color de marca */
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 8px; /* Bordes redondeados */
+            border-bottom: none;
+        }
+        .totals-row.final span:last-child {
+            color: white;
+        }
+
+        /* Pie de página para el presupuesto */
+        .budget-footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+            font-size: 11px;
+            color: #777;
+        }
+        .budget-footer p {
+            margin: 0 0 5px 0;
+        }
+        
+        /* --- FIN ESTILOS MEJORADOS --- */
+        
+        #client-info-modal-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Ocultar en la impresión */
+        @media print {
+            body {
+                background-color: #fff;
+            }
+            #app-controls, #calculator-screen { /* Ocultar app e imprimir controles */
+                display: none;
+            }
+            #budget-preview-modal-overlay {
+                /* Asegurarse de que el modal de previo ocupe todo */
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: #fff;
+                padding: 0;
+                margin: 0;
+                overflow: visible;
+            }
+            #budget-sheet {
+                box-shadow: none;
+                padding: 0;
+                margin: 0;
+                width: 100%;
+                min-height: auto;
+                color: #000; /* Asegurar texto negro en impresión */
+                border: none;
+            }
+            /* Quitar fondo de color en impresión (ahorra tinta) */
+            #budget-table th {
+                background-color: #f2f2f2 !important;
+                color: #000 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .totals-row.final {
+                background-color: #f2f2f2 !important;
+                color: #000 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
         }
 
     </style>
@@ -128,7 +270,7 @@
 
         <!-- Buscador -->
         <div class="p-4 bg-white border-b border-gray-200">
-            <input type="text" id="search-box" placeholder="Buscar producto..." class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F9A825]">
+            <input type="text" id="search-box" placeholder="Buscar por producto, categoría o fabricante..." class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F9A825]">
         </div>
 
         <!-- Lista de Productos -->
@@ -164,10 +306,21 @@
                 </div>
             </div>
 
-            <!-- Botón Limpiar Carrito -->
-            <button id="reset-button" class="w-full bg-red-500 text-white font-semibold py-3 rounded-lg shadow-md hover:bg-red-600 transition-colors">
-                Limpiar Carrito
-            </button>
+            <!-- Botones del pie de página -->
+            <div class="flex items-center">
+                <!-- Botón Limpiar Carrito (Icono) -->
+                <button id="reset-button" class="bg-red-500 text-white font-semibold p-3 rounded-lg shadow-md hover:bg-red-600 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                        <path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.816 1.387 2.816 2.951Zm-6.136-1.452a51.196 51.196 0 0 0-3.369 0c-.37.012-.63.29-.63.64v.227h4.639v-.227c0-.35-.26-.628-.63-.64Z" clip-rule="evenodd" />
+                        <path fill-rule="evenodd" d="M5.082 6.975c.04.052.08.105.12.158l.823 10.718a1.5 1.5 0 0 0 1.492 1.396h7.962a1.5 1.5 0 0 0 1.492-1.396l.823-10.718c.04-.053.08-.106.12-.158H5.082Z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                
+                <!-- Botón Generar Presupuesto -->
+                <button id="generate-budget-button" class="flex-1 bg-[#F9A825] text-white font-semibold py-3 rounded-lg shadow-md hover:bg-[#E6951A] transition-colors ml-3">
+                    Generar Presupuesto
+                </button>
+            </div>
         </footer>
     </div>
     
@@ -202,6 +355,70 @@
         </div>
     </div>
 
+    <!-- 5. MODAL DE PREVIO DE PRESUPUESTO -->
+    <div id="budget-preview-modal-overlay" class="fixed inset-0 z-40 flex items-center justify-center p-4 hidden overflow-y-auto">
+        <div class="relative w-full max-w-4xl my-8">
+            <!-- Controles (Cerrar, Imprimir, etc.) -->
+            <div id="app-controls" class="bg-gray-800 text-white p-4 rounded-t-lg flex justify-between items-center sticky top-0">
+                <div>
+                    <h3 class="text-lg font-semibold">Previo de Presupuesto</h3>
+                    <p class="text-sm text-gray-300">¡Listo! Haz una captura de pantalla o imprime.</p>
+                </div>
+                <div>
+                    <button id="print-budget-button" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg mr-2">
+                        Imprimir / Guardar PDF
+                    </button>
+                    <button id="close-budget-preview-button" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+            
+            <!-- La "hoja" del presupuesto -->
+            <div id="budget-sheet" class="bg-white text-black p-8">
+                <!-- El contenido se inyecta con JS -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- 6. MODAL DE INFORMACIÓN DEL CLIENTE (ANTES DEL PREVIO) -->
+    <div id="client-info-modal-overlay" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm">
+            <h2 class="text-lg font-bold text-gray-900 mb-4">Detalles del Presupuesto</h2>
+            
+            <!-- Nombre del Cliente -->
+            <div class="mb-4">
+                <label for="client-name-input" class="block text-sm font-medium text-gray-700 mb-1">Nombre del Cliente</label>
+                <input type="text" id="client-name-input" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F9A825]" placeholder="Ej: Juan Pérez">
+            </div>
+            
+            <!-- Tipo de IVA -->
+            <div class="mb-6">
+                <span class="block text-sm font-medium text-gray-700 mb-2">Tipo de IVA</span>
+                <div class="flex gap-4">
+                    <label for="iva-21" class="flex items-center">
+                        <input type="radio" id="iva-21" name="iva-type" value="0.21" class="focus:ring-[#F9A825] h-4 w-4 text-[#F9A825] border-gray-300" checked>
+                        <span class="ml-2 text-gray-700">Empresa (21%)</span>
+                    </label>
+                    <label for="iva-10" class="flex items-center">
+                        <input type="radio" id="iva-10" name="iva-type" value="0.10" class="focus:ring-[#F9A825] h-4 w-4 text-[#F9A825] border-gray-300">
+                        <span class="ml-2 text-gray-700">Particular (10%)</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <button id="cancel-client-info-button" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">
+                    Cancelar
+                </button>
+                <button id="confirm-client-info-button" class="bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700">
+                    Continuar
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- FIN MODAL -->
+
 
     <script>
         // --- 1. REFERENCIAS A ELEMENTOS DEL DOM ---
@@ -223,6 +440,8 @@
         const resetButton = document.getElementById('reset-button');
         const appManifest = document.getElementById('app-manifest');
 
+        const budgetButton = document.getElementById('generate-budget-button');
+
         // Modal de Confirmación
         const confirmModalOverlay = document.getElementById('confirm-modal-overlay');
         const cancelClearButton = document.getElementById('cancel-clear-button');
@@ -232,11 +451,25 @@
         const productModalOverlay = document.getElementById('product-modal-overlay');
         const productModalContent = document.getElementById('product-modal-content');
         const closeModalButton = document.getElementById('close-modal-button');
+        
+        // Modal de Previo de Presupuesto
+        const budgetPreviewModalOverlay = document.getElementById('budget-preview-modal-overlay');
+        const budgetSheet = document.getElementById('budget-sheet');
+        const closeBudgetPreviewButton = document.getElementById('close-budget-preview-button');
+        const printBudgetButton = document.getElementById('print-budget-button');
+        
+        // Modal de Info Cliente
+        const clientInfoModalOverlay = document.getElementById('client-info-modal-overlay');
+        const cancelClientInfoButton = document.getElementById('cancel-client-info-button');
+        const confirmClientInfoButton = document.getElementById('confirm-client-info-button');
+        const clientNameInput = document.getElementById('client-name-input');
+
 
         // --- 2. ESTADO DE LA APLICACIÓN ---
         let allProducts = []; // Guarda todos los productos del Excel
         let cart = {}; // Guarda los productos seleccionados { productId: quantity }
-        const VAT_RATE = 0.21; // 21% de IVA
+        let currentTotalPrice = 0; // Para el previo
+        let VAT_RATE = 0.21; // 21% de IVA (valor por defecto, se actualiza en el summary)
 
         // --- 3. LÓGICA DE INICIALIZACIÓN ---
         document.addEventListener('DOMContentLoaded', initializeApp);
@@ -268,6 +501,8 @@
             searchBox.addEventListener('input', filterProducts);
             profitBox.addEventListener('click', toggleProfitVisibility);
             
+            budgetButton.addEventListener('click', openClientInfoModal); 
+            
             // Listeners del modal de confirmación
             clearDataButton.addEventListener('click', () => confirmModalOverlay.classList.remove('hidden'));
             cancelClearButton.addEventListener('click', () => confirmModalOverlay.classList.add('hidden'));
@@ -276,11 +511,19 @@
             // Listeners del modal de ficha de producto
             closeModalButton.addEventListener('click', () => productModalOverlay.classList.add('hidden'));
             productModalOverlay.addEventListener('click', (e) => {
-                // Cierra si se hace clic en el fondo oscuro
                 if (e.target === productModalOverlay) {
                     productModalOverlay.classList.add('hidden');
                 }
             });
+            
+            // Listeners del modal de previo
+            closeBudgetPreviewButton.addEventListener('click', () => budgetPreviewModalOverlay.classList.add('hidden'));
+            printBudgetButton.addEventListener('click', () => window.print());
+
+            // Listeners del modal de info cliente
+            cancelClientInfoButton.addEventListener('click', () => clientInfoModalOverlay.classList.add('hidden'));
+            confirmClientInfoButton.addEventListener('click', generateBudgetWithClientInfo);
+
 
             // Comprobar si hay productos guardados
             const savedProducts = localStorage.getItem('allProducts');
@@ -294,16 +537,15 @@
                         cart = JSON.parse(savedCart);
                     }
                     
-                    displayProducts(allProducts); // Mostrar productos antes de actualizar el resumen
-                    updateSummary(); // Actualizar carrito y totales
+                    displayProducts(allProducts); 
+                    updateSummary(); // Asegurarse de que el resumen se actualiza con el IVA por defecto
 
-                    // Saltar la pantalla de importación
                     importScreen.classList.add('hidden');
                     calculatorScreen.classList.remove('hidden');
                     calculatorScreen.classList.add('flex');
                 } catch (e) {
                     console.error("Error al parsear datos de localStorage", e);
-                    clearAllData(); // Si hay error, limpiar todo
+                    clearAllData();
                 }
             }
         }
@@ -359,16 +601,16 @@
 
             const header = data[0].map(h => String(h).toLowerCase().trim());
             
-            // Columnas requeridas
+            // Columnas obligatorias
             const nameIndex = header.indexOf('componente');
             const priceIndex = header.indexOf('precio pvp (€)');
             const costIndex = header.indexOf('coste tras descuentos');
-
-            // Columnas opcionales (para la ficha de producto)
+            
+            // Columnas opcionales
             const descIndex = header.indexOf('descripción');
             const brandIndex = header.indexOf('fabricante');
             const catIndex = header.indexOf('categoría');
-            const imgIndex = header.indexOf('imagen_fabricante'); // <-- AÑADIDA
+            const imgIndex = header.indexOf('imagen_fabricante'); // <-- IMAGEN AÑADIDA
 
             if (nameIndex === -1 || priceIndex === -1 || costIndex === -1) {
                 let missing = [];
@@ -393,24 +635,19 @@
                         nombre: String(nombre).trim(),
                         precio: precioVenta,
                         costo: costo,
-                        // Añadimos datos opcionales
                         descripcion: descIndex > -1 ? String(row[descIndex] || '').trim() : '',
                         fabricante: brandIndex > -1 ? String(row[brandIndex] || '').trim() : '',
                         categoria: catIndex > -1 ? String(row[catIndex] || '').trim() : '',
-                        imagen: imgIndex > -1 ? String(row[imgIndex] || '').trim() : '' // <-- AÑADIDA
+                        imagen: imgIndex > -1 ? String(row[imgIndex] || '').trim() : '' // <-- IMAGEN AÑADIDA
                     });
                 }
             }
 
             localStorage.setItem('allProducts', JSON.stringify(allProducts));
-            
-            // Limpiar carrito al cargar nuevo archivo
             cart = {};
             localStorage.removeItem('cart');
-
             displayProducts(allProducts);
-            updateSummary(); // Actualizar totales (que estarán a 0)
-
+            updateSummary(); 
             importScreen.classList.add('hidden');
             calculatorScreen.classList.remove('hidden');
             calculatorScreen.classList.add('flex');
@@ -428,22 +665,28 @@
 
             productsToDisplay.forEach(product => {
                 const card = document.createElement('div');
-                // AÑADIDA IMAGEN: volvemos al flex con gap
                 card.className = "bg-white p-4 rounded-lg shadow-md flex items-center gap-4";
                 
                 const quantity = cart[product.id] || 0;
-                const priceWithVat = product.precio * (1 + VAT_RATE);
+                // Usamos el IVA por defecto (21%) para la vista de lista
+                const priceWithVat = product.precio * (1 + 0.21); 
                 
-                // Icono por defecto si no hay imagen
-                // (Usamos un SVG simple como placeholder)
-                const imageHtml = product.imagen
-                    ? `<img src="${product.imagen}" alt="${product.nombre}" class="w-14 h-14 object-contain rounded-md bg-gray-100" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 24 24%22 stroke-width=%221.5%22 stroke=%22currentColor%22 class=%22w-6 h-6 text-gray-400%22%3E%3Cpath stroke-linecap=%22round%22 stroke-linejoin=%22round%22 d=%22m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm1.5-6.75h.008v.008H4.5v-.008Z%22 /%3E%3C/svg%3E'; this.onerror=null; this.classList.add('p-4');" />`
-                    : `<div class="w-14 h-14 rounded-md bg-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm1.5-6.75h.008v.008H4.5v-.008Z" /></svg>
-                       </div>`;
+                // --- IMAGEN AÑADIDA DE NUEVO ---
+                let imgHtml = '';
+                if (product.imagen) {
+                    imgHtml = `<img src="${product.imagen}" alt="${product.fabricante}" class="w-14 h-14 object-contain rounded-md bg-gray-50 border p-1" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                               <div class="w-14 h-14 rounded-md bg-gray-100 flex items-center justify-center text-gray-400 border" style="display:none;">
+                                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm1.5-6a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" /></svg>
+                               </div>`;
+                } else {
+                    imgHtml = `<div class="w-14 h-14 rounded-md bg-gray-100 flex items-center justify-center text-gray-400 border">
+                                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm1.5-6a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" /></svg>
+                               </div>`;
+                }
+                // --- FIN IMAGEN AÑADIDA ---
 
                 card.innerHTML = `
-                    ${imageHtml}
+                    ${imgHtml}
                     <div class="flex-1 min-w-0">
                         <a href="#" class="block font-semibold text-gray-800 text-md truncate hover:underline" onclick="showProductModal(event, '${product.id}')">
                             ${product.nombre}
@@ -471,19 +714,21 @@
         function filterProducts() {
             const query = searchBox.value.toLowerCase();
             const filteredProducts = allProducts.filter(product => 
-                product.nombre.toLowerCase().includes(query)
+                product.nombre.toLowerCase().includes(query) ||
+                (product.categoria && product.categoria.toLowerCase().includes(query)) ||
+                (product.fabricante && product.fabricante.toLowerCase().includes(query))
             );
             displayProducts(filteredProducts);
         }
         
         function showProductModal(event, productId) {
-            event.preventDefault(); // Evitar que el enlace "#" mueva la página
+            event.preventDefault(); 
             const product = allProducts.find(p => p.id === productId);
             if (!product) return;
             
-            const priceWithVat = product.precio * (1 + VAT_RATE);
+            // Usar 21% por defecto para la ficha de producto
+            const priceWithVat = product.precio * (1 + 0.21); 
             
-            // Info de Fabricante y Categoría (si existen)
             let detailsHtml = '';
             if (product.fabricante) {
                 detailsHtml += `<p class="text-md text-gray-600 mb-1"><span class="font-semibold">Fabricante:</span> ${product.fabricante}</p>`;
@@ -492,20 +737,24 @@
                 detailsHtml += `<p class="text-md text-gray-600 mb-4"><span class="font-semibold">Categoría:</span> ${product.categoria}</p>`;
             }
 
-            // AÑADIDA IMAGEN: Placeholder para la ficha
-            const imageHtml = product.imagen
-                ? `<img src="${product.imagen}" alt="${product.nombre}" class="w-full h-48 object-contain rounded-lg bg-gray-100 mb-4" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 24 24%22 stroke-width=%221.5%22 stroke=%22currentColor%22 class=%22w-6 h-6 text-gray-400%22%3E%3Cpath stroke-linecap=%22round%22 stroke-linejoin=%22round%22 d=%22m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm1.5-6.75h.008v.008H4.5v-.008Z%22 /%3E%3C/svg%3E'; this.onerror=null; this.classList.add('p-12');" />`
-                : `<div class="w-full h-48 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm1.5-6.75h.008v.008H4.5v-.008Z" /></svg>
-                   </div>`;
-
+            // --- IMAGEN AÑADIDA DE NUEVO A LA FICHA ---
+            let imgHtml = '';
+            if (product.imagen) {
+                imgHtml = `<img src="${product.imagen}" alt="${product.fabricante}" class="w-full h-32 object-contain rounded-lg bg-gray-50 border p-2 mb-4" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                           <div class="w-full h-32 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 border mb-4" style="display:none;">
+                               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm1.5-6a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" /></svg>
+                           </div>`;
+            } else {
+                imgHtml = `<div class="w-full h-32 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 border mb-4">
+                               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm1.5-6a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" /></svg>
+                           </div>`;
+            }
+            // --- FIN IMAGEN AÑADIDA ---
 
             productModalContent.innerHTML = `
-                ${imageHtml}
+                ${imgHtml}
                 <h2 class="text-2xl font-bold text-gray-900 mb-2">${product.nombre}</h2>
-                
                 ${detailsHtml}
-                
                 <div class="bg-gray-50 p-4 rounded-lg mb-4">
                     <p class="text-blue-600 font-semibold text-sm">
                         ${product.precio.toFixed(2)} € <span class="text-gray-500 font-normal">(Base)</span>
@@ -514,7 +763,6 @@
                         ${priceWithVat.toFixed(2)} € <span class="text-gray-600 font-normal text-sm">(IVA incl.)</span>
                     </p>
                 </div>
-                
                 ${product.descripcion ? `
                     <h3 class="font-semibold text-gray-800 mb-2">Descripción</h3>
                     <p class="text-gray-600 whitespace-pre-wrap">${product.descripcion}</p>
@@ -530,7 +778,6 @@
             event.stopPropagation();
             const currentQty = cart[productId] || 0;
             cart[productId] = currentQty + 1;
-            
             updateQuantityUI(productId);
             updateSummary();
         }
@@ -538,14 +785,12 @@
         function decrementQuantity(event, productId) {
             event.stopPropagation();
             const currentQty = cart[productId] || 0;
-            
             if (currentQty > 0) {
                 cart[productId] = currentQty - 1;
                 if (cart[productId] === 0) {
                     delete cart[productId];
                 }
             }
-            
             updateQuantityUI(productId);
             updateSummary();
         }
@@ -561,6 +806,9 @@
             let totalPrice = 0;
             let totalCost = 0;
             let totalItems = 0;
+            
+            // Usar 21% por defecto para el resumen, ya que no se ha elegido cliente
+            const currentVatRate = 0.21; 
 
             cartItemsContainer.innerHTML = '';
             if (Object.keys(cart).length === 0) {
@@ -572,15 +820,15 @@
                 for (const productId in cart) {
                     const quantity = cart[productId];
                     if (quantity === 0) continue;
-
                     const product = allProducts.find(p => p.id === productId);
                     if (!product) continue;
 
                     totalPrice += product.precio * quantity;
                     totalCost += product.costo * quantity;
                     totalItems += quantity;
-
-                    const itemPriceVat = (product.precio * quantity) * (1 + VAT_RATE);
+                    
+                    // Usar 21% por defecto para la lista del carrito
+                    const itemPriceVat = (product.precio * quantity) * (1 + currentVatRate); 
 
                     const itemEl = document.createElement('div');
                     itemEl.className = 'flex justify-between items-center py-1 px-2 even:bg-gray-50 rounded';
@@ -597,9 +845,10 @@
                     cartItemsContainer.appendChild(itemEl);
                 }
             }
-
-            const totalProfit = totalPrice - totalCost;
-            const totalPriceWithVat = totalPrice * (1 + VAT_RATE);
+            
+            currentTotalPrice = totalPrice; // Guardar para el previo
+            const totalProfit = totalPrice - totalCost; // CORRECCIÓN: Cálculo de totalProfit
+            const totalPriceWithVat = totalPrice * (1 + currentVatRate);
 
             totalPriceEl.textContent = `${totalPrice.toFixed(2)} €`;
             totalPriceVatEl.textContent = `${totalPriceWithVat.toFixed(2)} €`;
@@ -617,19 +866,147 @@
             cart = {};
             localStorage.removeItem('cart');
             updateSummary();
-            filterProducts(); // Actualiza la UI de la lista de productos (pone contadores a 0)
-            profitBox.classList.add('censored'); // Vuelve a censurar el beneficio
+            filterProducts(); 
+            profitBox.classList.add('censored'); 
         }
 
         function clearAllData() {
+            confirmModalOverlay.classList.add('hidden');
             localStorage.removeItem('allProducts');
             localStorage.removeItem('cart');
-            location.reload(); // Recarga la app a la pantalla de importación
+            location.reload(); 
         }
         
         function toggleProfitVisibility() {
             profitBox.classList.toggle('censored');
         }
+        
+        // --- 7. LÓGICA: PREVIO DE PRESUPUESTO ---
+        
+        function openClientInfoModal() {
+            if (Object.keys(cart).length === 0) {
+                console.log("El carrito está vacío.");
+                return;
+            }
+            clientNameInput.value = ''; // Limpiar el campo
+            clientInfoModalOverlay.classList.remove('hidden');
+        }
+        
+        function generateBudgetWithClientInfo() {
+            const ivaRate = parseFloat(document.querySelector('input[name="iva-type"]:checked').value);
+            let clientName = clientNameInput.value.trim();
+            
+            if (clientName === '') {
+                clientName = 'Cliente'; // Valor por defecto
+            }
+            
+            clientInfoModalOverlay.classList.add('hidden');
+            showBudgetPreview(clientName, ivaRate);
+        }
+        
+        function showBudgetPreview(clientName, ivaRate) {
+            // Esta función usa currentTotalPrice, que se calcula en updateSummary()
+            if (Object.keys(cart).length === 0) {
+                return;
+            }
+            
+            // Logo (PNG Data URI)
+            const logo = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAADs0lEQVR4nO2dW27bMBAwVbVzB/EGOeUWeYI8QR/BTu8g3SBvEG8QbxBvkG+Qb5Bv0N2+gMBeiZQN6VA0W+kkh0RkRIqkkqR0fnx2Z8czkEREvn4REREREZHHgJg/E0iAG+C1s/o3AXwXgD8A+D6AeQDsA/gXwzmLf3cRkQ/AnwG8B+D7F8Dv2wH8WzM5y/35B8DxvQx/IwL4tJm85b4rBtA/APgwwP9rBH6pB+S+qwbQmAA+pvH/rwH8bwG5b5sBNCrArzX8vxLA/xKQ+7YYQGNCAH/X8P8agY9rkPuWEkBjAvhcw/+bAXz8gNyXGgBjQgD/1sD/VQL4LwK5LzUAxiQC+KqB/2sEftgCua8yAMYkAvg6gf+bAfxgB+RXKQBjEgH8VsP/qwTwyw7Ir1QBxCRKAD/V8P8agR9rkF+VAYhJpAA+T+D/JgB/tkF+lQYgJlEC+KmB/ysE8MsK5FdpAGKSDMAnBv6vEfhhB+RXKQBiigyAJwb+bwLwRwvkV2gAYpIMwCcG/q8R+GEH5FcpgJgkA/BJgf+bALxkA/IrFICYSALgSwb+rxH4YA/kVyDAYqIIgC8Z+L8JwC/ZIL9CAhCTYAB+b+D/KgF8yQb5FQhATCIB8HsD/zcB+EsW5FcgADEJBsDvDfyvEfjBDsjvUYAxSQXA7w383wTglWyQ36MAYpIKgN8b+L9KAF+yQX6NAhCTdAD+YOD/GgE/bIL8GgUgJskA/MHA/00AfsgG+TUKQEySAfiDgX8FAr5kg/waBSAm4QD8wcD/NQJ+2AT5NQpATMID+IOB/5sA/JEN8msegJjEAfjDgX8lAv5kg/yaiACYSAfgDwP/1wjoJkF+0wQgJvEAfjDwfxOAH7JBfssEIHImAfhhgP+rBPB/fSD3LTiAGCdPAD/M8P8agR9qkPuWH0CMkwngeyT+bwLwQwvkviUFEGNkAviThv9XCfzyA7lvKQHENEYAf9Lw/xoBH6ZA7ltGAHFMJoBvkfh/E4BfbpD7ljJADOObAHzI8P8qgV9ukPuWMkAcywPwtYb/1wjoIRfkviUEEMd5AvisgP+bAPy+BfkviQLEMc4AfNbA/1UCP2xA/kviADEscwD4rIb/1wh8yID8l0gA4ljmAHAk9H8TgN9sQP5LIgDEsYwB4Mjof5XAzzUgf/UTgBgWMwAcif6vEfghA/KvfgBiOMYAOCL/fwOAv2lA/qofgBgOMwAcEftXSgC/1kD+VT+AOBwOAEdi/9cI/GAF8q/6AcRh+ADgxwd/ZwF4ZQL5l0ZEREREREREPvEXl1m8F/JqY3wAAAAASUVORK5CYII=";
+            
+            let tableHtml = `<table id="budget-table">
+                                <thead>
+                                    <tr>
+                                        <th>Cant.</th>
+                                        <th>Descripción</th>
+                                        <th class="text-right">P. Unit (Base)</th>
+                                        <th class="text-right">Total (Base)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+            
+            let totalPrice = 0;
+            for (const productId in cart) {
+                const quantity = cart[productId];
+                if (quantity === 0) continue;
+                const product = allProducts.find(p => p.id === productId);
+                if (!product) continue;
+
+                const lineTotal = product.precio * quantity;
+                totalPrice += lineTotal;
+                
+                // --- CAMBIO: Descripción del producto en la tabla ---
+                let descHtml = product.descripcion 
+                    ? `<br><span style="font-size: 11px; color: #666; font-weight: 400;">${product.descripcion}</span>` 
+                    : '';
+
+                tableHtml += `<tr>
+                                <td>${quantity}</td>
+                                <td>
+                                    <strong style="font-size: 13px; color: #333;">${product.nombre}</strong>
+                                    ${descHtml}
+                                </td>
+                                <td class="text-right">${product.precio.toFixed(2)} €</td>
+                                <td class="text-right">${lineTotal.toFixed(2)} €</td>
+                              </tr>`;
+                // --- FIN DEL CAMBIO ---
+            }
+            
+            tableHtml += `</tbody></table>`;
+            
+            // --- CAMBIO: Totales con nuevo diseño ---
+            const vatAmount = totalPrice * ivaRate;
+            const totalWithVat = totalPrice + vatAmount;
+            
+            const totalsHtml = `
+                <div class="budget-totals-container">
+                    <div class="totals-row">
+                        <span>Total Base:</span>
+                        <span>${totalPrice.toFixed(2)} €</span>
+                    </div>
+                    <div class="totals-row">
+                        <span>IVA (${(ivaRate * 100).toFixed(0)}%):</span>
+                        <span>${vatAmount.toFixed(2)} €</span>
+                    </div>
+                    <div class="totals-row final">
+                        <span>TOTAL (IVA incl.):</span>
+                        <span>${totalWithVat.toFixed(2)} €</span>
+                    </div>
+                </div>
+            `;
+            // --- FIN CAMBIO TOTALES ---
+
+            // --- NUEVO: Pie de página del presupuesto ---
+            const footerHtml = `
+                <div class="budget-footer">
+                    <p><strong>Forma de pago:</strong> 50% a la aceptación del presupuesto, 50% al finalizar la instalación.</p>
+                    <p><strong>Garantía:</strong> Todos nuestros productos cuentan con 2 años de garantía según la legislación vigente.</p>
+                    <p style="margin-top: 10px;">Gracias por su confianza en CARJO PUERTAS AUTOMATICAS.</p>
+                </div>
+            `;
+            // --- FIN NUEVO PIE DE PÁGINA ---
+            
+            // --- Montar la hoja ---
+            budgetSheet.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #F9A825; padding-bottom: 15px;">
+                    <img src="${logo}" alt="Logo Carjo" style="width: 80px; height: 80px;" />
+                    <div style="text-align: right;">
+                        <h2 style="font-size: 28px; font-weight: 700; margin: 0; color: #111;">CARJO PUERTAS AUTOMATICAS</h2>
+                        <p style="font-size: 14px; margin: 0; color: #555;">${new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                    </div>
+                </div>
+                <div style="margin-top: 30px; margin-bottom: 10px;">
+                    <h3 style="font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 5px;">Presupuesto para:</h3>
+                    <p style="font-size: 18px; font-weight: 600; color: #111;">${clientName}</p>
+                </div>
+                ${tableHtml}
+                ${totalsHtml}
+                ${footerHtml}
+            `;
+            
+            // Mostrar el modal
+            budgetPreviewModalOverlay.classList.remove('hidden');
+        }
+        
     </script>
 </body>
 </html>
