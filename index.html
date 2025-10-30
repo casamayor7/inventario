@@ -408,6 +408,12 @@
                 <input type="text" id="client-name-input" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F9A825]" placeholder="Ej: Juan Pérez">
             </div>
             
+            <!-- CAMBIO: Horas de Mano de Obra -->
+            <div class="mb-4">
+                <label for="labor-hours-input" class="block text-sm font-medium text-gray-700 mb-1">Horas de Mano de Obra (50€/h)</label>
+                <input type="number" id="labor-hours-input" min="0" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F9A825]" placeholder="Ej: 2">
+            </div>
+            
             <!-- Tipo de IVA -->
             <div class="mb-6">
                 <span class="block text-sm font-medium text-gray-700 mb-2">Tipo de IVA</span>
@@ -479,13 +485,14 @@
         const cancelClientInfoButton = document.getElementById('cancel-client-info-button');
         const confirmClientInfoButton = document.getElementById('confirm-client-info-button');
         const clientNameInput = document.getElementById('client-name-input');
+        const laborHoursInput = document.getElementById('labor-hours-input'); // <-- NUEVO: Input de Horas
 
 
         // --- 2. ESTADO DE LA APLICACIÓN ---
         let allProducts = []; // Guarda todos los productos del Excel
         let productMap = {}; // OPTIMIZACIÓN: Acceso rápido a productos por ID
         let cart = {}; // Guarda los productos seleccionados { productId: quantity }
-        let currentTotalPrice = 0; // Para el previo
+        let currentTotalPrice = 0; // Para el previo (solo productos)
         let VAT_RATE = 0.21; // 21% de IVA (valor por defecto, se actualiza en el summary)
 
         // --- 3. LÓGICA DE INICIALIZACIÓN ---
@@ -935,7 +942,7 @@
                 }
             }
             
-            currentTotalPrice = totalPrice; // Guardar para el previo
+            currentTotalPrice = totalPrice; // Guardar para el previo (solo productos)
             const totalProfit = totalPrice - totalCost; 
             const totalPriceWithVat = totalPrice * (1 + currentVatRate);
 
@@ -989,24 +996,27 @@
                 return;
             }
             clientNameInput.value = ''; // Limpiar el campo
+            laborHoursInput.value = ''; // Limpiar horas
             clientInfoModalOverlay.classList.remove('hidden');
         }
         
         function generateBudgetWithClientInfo() {
             const ivaRate = parseFloat(document.querySelector('input[name="iva-type"]:checked').value);
             let clientName = clientNameInput.value.trim();
+            let laborHours = parseFloat(laborHoursInput.value) || 0; // <-- NUEVO: Leer horas
             
             if (clientName === '') {
                 clientName = 'Cliente'; // Valor por defecto
             }
             
             clientInfoModalOverlay.classList.add('hidden');
-            showBudgetPreview(clientName, ivaRate);
+            showBudgetPreview(clientName, ivaRate, laborHours); // <-- NUEVO: Pasar horas
         }
         
-        function showBudgetPreview(clientName, ivaRate) {
-            // Esta función usa currentTotalPrice, que se calcula en updateSummary()
-            if (Object.keys(cart).length === 0) {
+        // CAMBIO: Aceptar laborHours
+        function showBudgetPreview(clientName, ivaRate, laborHours) {
+            
+            if (Object.keys(cart).length === 0 && laborHours === 0) {
                 return;
             }
             
@@ -1024,7 +1034,9 @@
                                 </thead>
                                 <tbody>`;
             
-            let totalPrice = 0;
+            // Usamos el total de productos que ya teníamos
+            let productTotalPrice = currentTotalPrice; 
+            
             for (const productId in cart) {
                 const quantity = cart[productId];
                 if (quantity === 0) continue;
@@ -1033,7 +1045,6 @@
                 if (!product) continue;
 
                 const lineTotal = product.precio * quantity;
-                totalPrice += lineTotal;
                 
                 let descHtml = product.descripcion 
                     ? `<br><span style="font-size: 11px; color: #666; font-weight: 400;">${product.descripcion}</span>` 
@@ -1050,8 +1061,25 @@
                               </tr>`;
             }
             
+            // --- CAMBIO: Añadir Mano de Obra ---
+            const laborPrice = laborHours * 50;
+            if (laborHours > 0) {
+                 tableHtml += `<tr>
+                                <td>${laborHours}</td>
+                                <td>
+                                    <strong style="font-size: 13px; color: #333;">Mano de Obra</strong>
+                                    <br><span style="font-size: 11px; color: #666; font-weight: 400;">Instalación y configuración.</span>
+                                </td>
+                                <td class="text-right">50.00 €</td>
+                                <td class="text-right">${laborPrice.toFixed(2)} €</td>
+                              </tr>`;
+            }
+            // --- FIN CAMBIO ---
+            
             tableHtml += `</tbody></table>`;
             
+            // --- CAMBIO: Calcular totales con Mano de Obra ---
+            const totalPrice = productTotalPrice + laborPrice; // Este es el nuevo Total Base
             const vatAmount = totalPrice * ivaRate;
             const totalWithVat = totalPrice + vatAmount;
             
@@ -1071,6 +1099,7 @@
                     </div>
                 </div>
             `;
+            // --- FIN CAMBIO ---
 
             const footerHtml = `
                 <div class="budget-footer">
