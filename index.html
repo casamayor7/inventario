@@ -50,14 +50,14 @@
             display: none;
         }
         
-        /* CAMBIO: La lista de productos ahora es la única zona con scroll */
+        /* La lista de productos ahora es la única zona con scroll */
         #product-list {
             overflow-y: auto; /* Scroll vertical */
             flex: 1 1 auto; /* Ocupa el espacio sobrante */
             padding-bottom: 4rem; /* Dejamos espacio para que el último producto no quede pegado */
         }
         
-        /* CAMBIO: El pie de página ya no necesita padding extra */
+        /* El pie de página ya no necesita padding extra */
         #calculator-screen > footer {
             flex-shrink: 0; /* No se encoge */
         }
@@ -108,7 +108,7 @@
         /* --- ESTILOS MEJORADOS PARA EL PRESUPUESTO --- */
         #budget-preview-modal-overlay {
             background-color: rgba(0, 0, 0, 0.75);
-            /* CAMBIO: Permitir scroll en el modal del presupuesto */
+            /* Permitir scroll en el modal del presupuesto */
             overflow-y: auto;
             z-index: 40;
         }
@@ -244,6 +244,7 @@
                 color: #000;
                 border: none;
             }
+            /* Forzar impresión de colores */
             #budget-table th {
                 background-color: #F9A825 !important;
                 color: white !important;
@@ -283,7 +284,7 @@
     </div>
 
     <!-- 2. PANTALLA DE LA CALCULADORA -->
-    <!-- CAMBIO: Estructura de altura completa (h-screen) y flex-col -->
+    <!-- Estructura de altura completa (h-screen) y flex-col -->
     <div id="calculator-screen" class="hidden flex flex-col h-screen">
         
         <!-- Cabecera (no se encoge) -->
@@ -307,33 +308,45 @@
         <!-- Pie de página (no se encoge) -->
         <footer class="bg-white border-t border-gray-200 shadow-lg p-4 z-10 flex-shrink-0">
             
-            <!-- Lista del Carrito (desplegable) -->
-            <div id="cart-items" class="max-h-32 overflow-y-auto mb-4 text-sm text-gray-700">
-                <p id="cart-placeholder" class="text-gray-400 text-center">El carrito está vacío</p>
-            </div>
-            
-            <!-- Resumen de Totales (cuadrícula 2x2) -->
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <div class="text-center">
-                    <span class="block text-xs font-medium text-gray-500 uppercase">Total (Base)</span>
-                    <span id="total-price" class="block text-lg font-bold text-blue-600">0.00 €</span>
-                </div>
-                 <div class="text-center">
-                    <span class="block text-xs font-medium text-gray-500 uppercase">Total (IVA incl.)</span>
-                    <span id="total-price-vat" class="block text-lg font-bold text-gray-900">0.00 €</span>
-                </div>
-                <div id="profit-box" class="text-center cursor-pointer censored">
-                    <span class="block text-xs font-medium text-gray-500 uppercase">Beneficio (tocar para ver)</span>
-                    <span id="total-profit" class="block text-lg font-bold text-green-600">0.00 €</span>
-                </div>
-                <div class="text-center">
-                    <span class="block text-xs font-medium text-gray-500 uppercase">Items</span>
-                    <span id="total-items" class="block text-lg font-bold text-gray-800">0</span>
-                </div>
-            </div>
+            <!-- NUEVO: Botón para colapsar -->
+            <button id="toggle-summary-button" class="w-full flex justify-center py-1 text-gray-400 hover:text-gray-600">
+                <svg id="toggle-summary-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6 transition-transform">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                </svg>
+            </button>
 
-            <!-- Botones del pie de página -->
-            <div class="flex items-center">
+            <!-- NUEVO: Sección colapsable -->
+            <div id="collapsible-summary-section" class="transition-all duration-300 overflow-hidden">
+                <!-- Lista del Carrito (desplegable) -->
+                <div id="cart-items" class="max-h-32 overflow-y-auto mb-4 text-sm text-gray-700">
+                    <p id="cart-placeholder" class="text-gray-400 text-center">El carrito está vacío</p>
+                </div>
+                
+                <!-- Resumen de Totales (cuadrícula 2x2) -->
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="text-center">
+                        <span class="block text-xs font-medium text-gray-500 uppercase">Total (Base)</span>
+                        <span id="total-price" class="block text-lg font-bold text-blue-600">0.00 €</span>
+                    </div>
+                    <div class="text-center">
+                        <span class="block text-xs font-medium text-gray-500 uppercase">Total (IVA incl.)</span>
+                        <span id="total-price-vat" class="block text-lg font-bold text-gray-900">0.00 €</span>
+                    </div>
+                    <div id="profit-box" class="text-center cursor-pointer censored">
+                        <span class="block text-xs font-medium text-gray-500 uppercase">Beneficio (tocar para ver)</span>
+                        <span id="total-profit" class="block text-lg font-bold text-green-600">0.00 €</span>
+                    </div>
+                    <div class="text-center">
+                        <span class="block text-xs font-medium text-gray-500 uppercase">Items</span>
+                        <span id="total-items" class="block text-lg font-bold text-gray-800">0</span>
+                    </div>
+                </div>
+            </div>
+            <!-- FIN Sección colapsable -->
+
+
+            <!-- Botones del pie de página (siempre visibles) -->
+            <div class="flex items-center mt-2"> <!-- Añadido margen por si acaso -->
                 <!-- Botón Limpiar Carrito (Icono) -->
                 <button id="reset-button" class="bg-red-500 text-white font-semibold p-3 rounded-lg shadow-md hover:bg-red-600 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
@@ -473,6 +486,11 @@
         const appManifest = document.getElementById('app-manifest');
 
         const budgetButton = document.getElementById('generate-budget-button');
+        
+        // NUEVO: Botón colapsable
+        const toggleSummaryButton = document.getElementById('toggle-summary-button');
+        const toggleSummaryIcon = document.getElementById('toggle-summary-icon');
+        const collapsibleSummarySection = document.getElementById('collapsible-summary-section');
 
         // Modal de Confirmación
         const confirmModalOverlay = document.getElementById('confirm-modal-overlay');
@@ -536,6 +554,9 @@
             profitBox.addEventListener('click', toggleProfitVisibility);
             
             budgetButton.addEventListener('click', openClientInfoModal); 
+            
+            // NUEVO: Listener para colapsar
+            toggleSummaryButton.addEventListener('click', toggleSummaryCollapse);
             
             // Listeners del modal de confirmación
             clearDataButton.addEventListener('click', () => confirmModalOverlay.classList.remove('hidden'));
@@ -997,13 +1018,26 @@
         function toggleProfitVisibility() {
             profitBox.classList.toggle('censored');
         }
+
+        // --- NUEVO: Función para colapsar ---
+        function toggleSummaryCollapse() {
+            const isHidden = collapsibleSummarySection.classList.toggle('hidden');
+            if (isHidden) {
+                toggleSummaryIcon.style.transform = 'rotate(180deg)';
+            } else {
+                toggleSummaryIcon.style.transform = 'rotate(0deg)';
+            }
+        }
         
         // --- 7. LÓGICA: PREVIO DE PRESUPUESTO ---
         
         function openClientInfoModal() {
             if (Object.keys(cart).length === 0) {
-                console.log("El carrito está vacío.");
-                return;
+                // Permitir abrir si hay horas de mano de obra
+                if (!laborHoursInput.value || parseFloat(laborHoursInput.value) === 0) {
+                     console.log("El carrito está vacío y no hay horas.");
+                     return;
+                }
             }
             clientNameInput.value = ''; // Limpiar el campo
             laborHoursInput.value = ''; // Limpiar horas
@@ -1019,16 +1053,18 @@
                 clientName = 'Cliente'; // Valor por defecto
             }
             
+            // Validar que hay algo que presupuestar
+            if (Object.keys(cart).length === 0 && laborHours === 0) {
+                 console.log("Nada que presupuestar.");
+                 return;
+            }
+            
             clientInfoModalOverlay.classList.add('hidden');
             showBudgetPreview(clientName, ivaRate, laborHours); // <-- NUEVO: Pasar horas
         }
         
         // CAMBIO: Aceptar laborHours
         function showBudgetPreview(clientName, ivaRate, laborHours) {
-            
-            if (Object.keys(cart).length === 0 && laborHours === 0) {
-                return;
-            }
             
             // Logo (PNG Data URI)
             const logo = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAADs0lEQVR4nO2dW27bMBAwVbVzB/EGOeUWeYI8QR/BTu8g3SBvEG8QbxBvkG+Qb5Bv0N2+gMBeiZQN6VA0W+kkh0RkRIqkkqR0fnx2Z8czkEREvn4REREREZHHgJg/E0iAG+C1s/o3AXwXgD8A+D6AeQDsA/gXwzmLf3cRkQ/AnwG8B+D7F8Dv2wH8WzM5y/35B8DxvQx/IwL4tJm85b4rBtA/APgwwP9rBH6pB+S+qwbQmAA+pvH/rwH8bwG5b5sBNCrArzX8vxLA/xKQ+7YYQGNCAH/X8P8agY9rkPuWEkBjAvhcw/+bAXz8gNyXGgBjQgD/1sD/VQL4LwK5LzUAxiQC+KqB/2sEftgCua8yAMYkAvg6gf+bAfxgB+RXKQBjEgH8VsP/qwTwyw7Ir1QBxCRKAD/V8P8agR9rkF+VAYhJpAA+T+D/JgB/tkF+lQYgJlEC+KmB/ysE8MsK5FdpAGKSDMAnBv6vEfhhB+RXKQBiigyAJwb+bwLwRwvkV2gAYpIMwCcG/q8R+GEH5FcpgJgkA/BJgf+bALxkA/IrFICYSALgSwb+rxH4YA/kVyDAYqIIgC8Z+L8JwC/ZIL9CAhCTYAB+b+D/KgF8yQb5FQhATCIB8HsD/zcB+EsW5FcgADEJBsDvDfyvEfjBDsjvUYAxSQXA7w383wTglWyQ36MAYpIKgN8b+L9KAF+yQX6NAhCTdAD+YOD/GgE/bIL8GgUgJskA/MHA/00AfsgG+TUKQEySAfiDgX8FAr5kg/waBSAm4QD8wcD/NQJ+2AT5NQpATMID+IOB/5sA/JEN8msegJjEAfjDgX8lAv5kg/yaiACYSAfgDwP/1wjoJkF+0wQgJvEAfjDwfxOAH7JBfssEIHImAfhhgP+rBPB/fSD3LTiAGCdPAD/M8P8agR9qkPuWH0CMkwngeyT+bwLwQwvkviUFEGNkAviThv9XCfzyA7lvKQHENEYAf9Lw/xoBH6ZA7ltGAHFMJoBvkfh/E4BfbpD7ljJADOObAHzI8P8qgV9ukPuWMkAcywPwtYb/1wjoIRfkviUEEMd5AvisgP+bAPy+BfkviQLEMc4AfNbA/1UCP2xA/kviADEscwD4rIb/1wh8yID8l0gA4ljmAHAk9H8TgN9sQP5LIgDEsYwB4Mjof5XAzzUgf/UTgBgWMwAcif6vEfghA/KvfgBiOMYAOCL/fwOAv2lA/qofgBgOMwAcEftXSgC/1kD+VT+AOBwOAEdi/9cI/GAF8q/6AcRh+ADgxwd/ZwF4ZQL5l0ZEREREREREPvEXl1m8F/JqY3wAAAAASUVORK5CYII=";
