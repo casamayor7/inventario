@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carjo Presupuestos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Carjo Productos Proveedores</title>
     
     <!-- Carga de Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -18,1164 +18,996 @@
     <meta name="apple-mobile-web-app-title" content="Carjo">
     <meta name="theme-color" content="#F9A825">
     
-    <!-- Favicon (generado a partir del logo) -->
+    <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%23F9A825%22></circle><path d=%22M75 35H25a5 5 0 0 0-5 5v30a5 5 0 0 0 5 5h50a5 5 0 0 0 5-5V40a5 5 0 0 0-5-5zM30 48h40v-8H30zM30 58h40v-8H30zM50 25l25 10H25l25-10z%22 fill=%22%23ffffff%22></path></svg>">
-    
-    <!-- Manifiesto PWA (generado dinámicamente) -->
     <link rel="manifest" id="app-manifest">
     
     <style>
+        /* --- RESET Y BASES --- */
         html, body {
             height: 100%;
-            overflow: hidden; /* Evitar scroll en el body */
+            overflow: hidden;
+            background-color: #f8fafc; /* Gris muy suave de fondo */
         }
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6; /* Fondo gris claro para la app */
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
             display: flex;
             flex-direction: column;
+            color: #1e293b; /* Texto gris oscuro casi negro para mejor lectura */
         }
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        /* --- COMPONENTES UI --- */
         
-        #file-upload-label {
+        /* Botones Generales */
+        .btn-primary {
+            background-color: #F9A825;
+            color: white;
+            font-weight: 600;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(249, 168, 37, 0.2);
+            border: none;
             cursor: pointer;
-            transition: all 0.2s ease-in-out;
-            background-color: #F9A825; /* Naranja del logo */
+        }
+        .btn-primary:hover {
+            background-color: #fbbf24;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 8px -1px rgba(249, 168, 37, 0.3);
+        }
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+            font-weight: 500;
+            border-radius: 0.75rem;
+            padding: 0.5rem 1rem;
+            transition: all 0.2s;
+        }
+        .btn-secondary:hover {
+            background-color: #f1f5f9;
+            color: #334155;
+        }
+
+        /* Inputs */
+        .input-field {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            background-color: white;
+            transition: all 0.2s;
+            outline: none;
+        }
+        .input-field:focus {
+            border-color: #F9A825;
+            box-shadow: 0 0 0 3px rgba(249, 168, 37, 0.1);
+        }
+
+        /* Botón de carga de archivo */
+        #file-upload-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            border: 2px dashed #cbd5e1;
+            border-radius: 1rem;
+            background-color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #64748b;
         }
         #file-upload-label:hover {
-            opacity: 0.9;
-            background-color: #E6951A;
+            border-color: #F9A825;
+            background-color: #fffbeb;
+            color: #F9A825;
         }
-        #file-input {
-            display: none;
+        #file-input { display: none; }
+
+        /* --- LISTAS Y SCROLL --- */
+        #product-list, #provider-grid, #category-grid {
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 6rem; /* Espacio extra al final */
         }
+        /* Ocultar scrollbar pero permitir scroll */
+        #product-list::-webkit-scrollbar { width: 6px; }
+        #product-list::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 3px; }
         
-        /* La lista de productos ahora es la única zona con scroll */
-        #product-list {
-            overflow-y: auto; /* Scroll vertical */
-            flex: 1 1 auto; /* Ocupa el espacio sobrante */
-            padding-bottom: 4rem; /* Dejamos espacio para que el último producto no quede pegado */
+        /* --- TARJETAS DE SELECCIÓN --- */
+        #provider-grid, #category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            padding: 1rem;
         }
-        
-        /* El pie de página ya no necesita padding extra */
-        #calculator-screen > footer {
-            flex-shrink: 0; /* No se encoge */
+        .selection-card {
+            background-color: white;
+            border-radius: 1rem;
+            padding: 1.5rem 1rem;
+            text-align: center;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+            border: 1px solid #f1f5f9;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 140px;
         }
-        
-        .qty-btn {
-            width: 2.25rem;
-            height: 2.25rem;
-            border-radius: 9999px;
-            color: white;
-            font-weight: bold;
-            font-size: 1.5rem;
-            line-height: 1;
+        .selection-card:hover {
+            border-color: #F9A825;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        }
+        .selection-icon {
+            height: 3.5rem;
+            width: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: opacity 0.2s;
-            -webkit-user-select: none;
-            user-select: none;
+            margin-bottom: 1rem;
         }
-        .qty-btn:active {
-            opacity: 0.7;
+        .selection-icon img {
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain;
         }
-        .qty-btn.bg-red-500 { background-color: #EF4444; }
-        .qty-btn.bg-green-600 { background-color: #22C55E; }
-        .qty-btn.bg-green-600:hover { background-color: #16A43A; }
-
-        /* Estilos para el modal de confirmación */
-        #confirm-modal-overlay {
-            background-color: rgba(0, 0, 0, 0.5);
-        }
-
-        /* Estilos para censurar el beneficio */
-        #profit-box.censored > #total-profit {
-            filter: blur(6px);
-            transition: filter 0.2s;
-            user-select: none;
-        }
-        #profit-box:not(.censored) > #total-profit {
-            filter: blur(0);
-            transition: filter 0.2s;
-        }
-        
-        /* Estilos para el modal de Ficha de Producto */
-        #product-modal-overlay {
-            background-color: rgba(0, 0, 0, 0.5);
-        }
-        
-        /* --- ESTILOS MEJORADOS PARA EL PRESUPUESTO --- */
-        #budget-preview-modal-overlay {
-            background-color: rgba(0, 0, 0, 0.75);
-            /* Permitir scroll en el modal del presupuesto */
-            overflow-y: auto;
-            z-index: 40;
-        }
-        
-        #budget-sheet {
-            width: 100%;
-            min-height: 0;
-            padding: 1.5rem;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-            background-color: #ffffff;
-            color: #333;
-        }
-        @media (min-width: 1024px) {
-            #budget-sheet {
-                width: 210mm;
-                min-height: 297mm;
-                padding: 15mm;
-            }
-        }
-        
-        #budget-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 25px;
-            font-size: 13px;
-        }
-        #budget-table th {
-            background-color: #F9A825;
-            color: white;
-            padding: 12px 15px;
-            text-align: left;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 11px;
-            letter-spacing: 0.5px;
-            border: none;
-        }
-        #budget-table td {
-            border: none;
-            border-bottom: 1px solid #eee;
-            padding: 12px 15px;
-            vertical-align: top; 
-        }
-        #budget-table tr:last-child td {
-            border-bottom: none;
-        }
-        
-        #budget-table td.text-right, #budget-table th.text-right {
-            text-align: right;
-        }
-
-        .budget-totals-container {
-            width: 100%;
-            margin-left: auto;
-            margin-top: 25px;
-            font-size: 14px;
-        }
-        @media (min-width: 640px) {
-            .budget-totals-container {
-                width: 50%;
-            }
-        }
-
-        .totals-row {
+        .selection-icon-placeholder {
+            width: 3.5rem;
+            height: 3.5rem;
+            background-color: #fff7ed; /* Naranja muy claro */
+            color: #F9A825;
+            border-radius: 1rem;
             display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        .totals-row span:last-child {
-            font-weight: 600;
-            color: #111;
-        }
-        .totals-row.final {
-            margin-top: 10px;
-            padding: 14px;
-            background-color: #F9A825;
-            color: white;
-            font-size: 1.2rem;
-            font-weight: bold;
-            border-radius: 8px;
-            border-bottom: none;
-        }
-        .totals-row.final span:last-child {
-            color: white;
+            align-items: center;
+            justify-content: center;
         }
 
-        .budget-footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 2px solid #f0f0f0;
-            font-size: 11px;
-            color: #777;
+        /* --- TARJETAS DE PRODUCTO --- */
+        .product-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1rem;
+            box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+            border: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: transform 0.1s;
         }
-        .budget-footer p {
-            margin: 0 0 5px 0;
+        .product-card:active {
+            transform: scale(0.99);
         }
-        
-        /* --- FIN ESTILOS MEJORADOS --- */
-        
-        #client-info-modal-overlay {
-            background-color: rgba(0, 0, 0, 0.5);
+
+        /* --- BOTONES CANTIDAD --- */
+        .qty-btn {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: white;
+            transition: opacity 0.2s;
+            flex-shrink: 0;
+        }
+        .qty-btn:active { opacity: 0.7; }
+        .btn-decrement { background-color: #ef4444; }
+        .btn-increment { background-color: #F9A825; /* Naranja marca */ }
+
+        /* --- FOOTER --- */
+        footer {
+            background: white;
+            box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);
+            border-top: 1px solid #f1f5f9;
+        }
+
+        /* --- MODALES --- */
+        .modal-overlay {
+            background-color: rgba(15, 23, 42, 0.6); /* Slate 900 con opacidad */
+            backdrop-filter: blur(4px);
             z-index: 50;
         }
+        .modal-content {
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            animation: modalUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes modalUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Estilos específicos para impresión/PDF (ocultos en pantalla) */
+        /* CAMBIO: Eliminada la línea que ocultaba el budget-sheet */
+        /* #budget-sheet { display: none; } <- ESTO SE HA BORRADO */
         
-        /* Ocultar en la impresión */
+        #internal-browser-modal { z-index: 100; }
+        
+        .censored { filter: blur(6px); user-select: none; }
+        
+        /* Impresión */
         @media print {
-            body {
-                background-color: #fff;
-                height: auto;
-                overflow: visible;
-            }
-            #app-controls, #calculator-screen {
-                display: none;
+            body * { visibility: hidden; }
+            #budget-preview-modal-overlay, #budget-preview-modal-overlay * {
+                visibility: visible;
             }
             #budget-preview-modal-overlay {
                 position: absolute;
-                top: 0;
                 left: 0;
+                top: 0;
                 width: 100%;
-                height: 100%;
-                background-color: #fff;
+                background: white;
                 padding: 0;
-                margin: 0;
-                overflow: visible;
             }
+            #app-controls { display: none !important; }
             #budget-sheet {
-                box-shadow: none;
-                padding: 0;
-                margin: 0;
-                width: 100%;
-                min-height: auto;
-                color: #000;
-                border: none;
-            }
-            /* Forzar impresión de colores */
-            #budget-table th {
-                background-color: #F9A825 !important;
-                color: white !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            .totals-row.final {
-                background-color: #F9A825 !important;
-                color: white !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
+                display: block !important;
+                box-shadow: none !important;
+                width: 100% !important;
             }
         }
-
     </style>
 </head>
-<body class="bg-gray-100">
+<body>
 
     <!-- 1. PANTALLA DE IMPORTACIÓN -->
-    <div id="import-screen" class="min-h-screen flex items-center justify-center p-4">
-        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md text-center">
+    <div id="import-screen" class="h-full flex flex-col items-center justify-center p-6 bg-white">
+        <div class="w-full max-w-md text-center space-y-8">
             
-            <div class="mb-4">
-                <img src="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%23F9A825%22></circle><path d=%22M75 35H25a5 5 0 0 0-5 5v30a5 5 0 0 0 5 5h50a5 5 0 0 0 5-5V40a5 5 0 0 0-5-5zM30 48h40v-8H30zM30 58h40v-8H30zM50 25l25 10H25l25-10z%22 fill=%22%23ffffff%22></path></svg>" 
-                     alt="Carjo Presupuestos Logo" class="w-24 h-24 mx-auto mb-4">
+            <!-- Logo Principal -->
+            <div class="flex flex-col items-center justify-center">
+                <div class="w-24 h-24 bg-[#F9A825] rounded-2xl flex items-center justify-center shadow-lg mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-16 h-16 fill-white">
+                        <path d="M75 35H25a5 5 0 0 0-5 5v30a5 5 0 0 0 5 5h50a5 5 0 0 0 5-5V40a5 5 0 0 0-5-5zM30 48h40v-8H30zM30 58h40v-8H30zM50 25l25 10H25l25-10z"/>
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900 tracking-tight">CARJO</h1>
+                <h2 class="text-sm font-medium text-gray-500 uppercase tracking-widest mt-1">Productos Proveedores</h2>
             </div>
-            <h1 class="text-2xl font-bold text-gray-800 mb-4">Carjo Presupuestos</h1>
-            <p class="text-gray-600 mb-6">Sube tu archivo .CSV o .XLSX de productos para empezar.</p>
 
-            <label for="file-input" id="file-upload-label" class="w-full text-white font-semibold py-3 px-6 rounded-lg shadow-md inline-block hover:bg-opacity-90">
-                Importar Archivo .CSV / .XLSX
-            </label>
-            <input type="file" id="file-input" accept=".csv,.xlsx,.xls">
-
-            <p id="error-message" class="text-red-500 text-sm mt-4 hidden"></p>
+            <div class="space-y-4">
+                <label for="file-input" id="file-upload-label" class="group">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10 mb-3 text-gray-400 group-hover:text-[#F9A825] transition-colors">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0 3 3.75m-3-3.75-3 3.75M12 9.75V9A2.25 2.25 0 0 0 9.75 6.75H9.75a2.25 2.25 0 0 0-2.25 2.25v10.5a2.25 2.25 0 0 0 2.25 2.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-10.5a2.25 2.25 0 0 0-2.25-2.25h-2.25" />
+                    </svg>
+                    <span class="font-semibold text-gray-700 group-hover:text-gray-900">Toca para cargar Excel</span>
+                    <span class="text-xs text-gray-400 mt-1">Soporta .CSV y .XLSX</span>
+                </label>
+                <input type="file" id="file-input" accept=".csv,.xlsx,.xls">
+                <p id="error-message" class="text-red-500 text-sm hidden bg-red-50 p-3 rounded-lg"></p>
+            </div>
+            
+            <p class="text-xs text-gray-400">Versión Web App v2.1</p>
         </div>
     </div>
 
-    <!-- 2. PANTALLA DE LA CALCULADORA -->
-    <!-- Estructura de altura completa (h-screen) y flex-col -->
-    <div id="calculator-screen" class="hidden flex flex-col h-screen">
+    <!-- 1.5. SELECCIÓN DE PROVEEDOR -->
+    <div id="provider-screen" class="hidden flex-col h-full bg-gray-50">
+        <div class="px-6 pt-8 pb-4">
+            <h1 class="text-2xl font-bold text-gray-900">Proveedores</h1>
+            <p class="text-gray-500 text-sm">Selecciona un catálogo para comenzar.</p>
+        </div>
         
-        <!-- Cabecera (no se encoge) -->
-        <header class="bg-white shadow-md p-4 sticky top-0 z-10 flex justify-between items-center flex-shrink-0">
-            <h1 class="text-xl font-bold text-gray-800">Seleccionar Productos</h1>
-            <button id="clear-data-button" class="bg-[#F9A825] text-white font-semibold py-2 px-4 rounded-lg shadow-md text-sm hover:bg-[#E6951A] transition-colors">
-                Cargar Nuevo
+        <div id="provider-grid" class="flex-1">
+            <!-- Botones generados aquí -->
+        </div>
+        
+        <div class="p-4 bg-white border-t border-gray-100 pb-safe">
+            <button id="back-to-import-button" class="w-full text-gray-500 text-sm font-medium py-3 hover:text-[#F9A825] transition-colors">
+                Cambiar archivo de origen
             </button>
+        </div>
+    </div>
+
+    <!-- 1.6. SELECCIÓN DE CATEGORÍA -->
+    <div id="category-screen" class="hidden flex-col h-full bg-gray-50">
+        <div class="px-6 pt-8 pb-4">
+            <div class="flex items-center justify-between mb-1">
+                <h1 class="text-2xl font-bold text-gray-900">Categorías</h1>
+            </div>
+            <p class="text-gray-500 text-sm">Filtra los productos por tipo.</p>
+        </div>
+        
+        <div id="category-grid" class="flex-1">
+            <!-- Botones generados aquí -->
+        </div>
+        
+        <div class="p-4 bg-white border-t border-gray-100 pb-safe">
+            <button id="back-to-provider-button" class="w-full btn-secondary">
+                ← Volver a Proveedores
+            </button>
+        </div>
+    </div>
+
+    <!-- 2. CALCULADORA -->
+    <div id="calculator-screen" class="hidden flex-col h-full bg-white">
+        <header class="bg-white border-b border-gray-100 sticky top-0 z-20">
+            <div class="flex items-center justify-between px-4 py-3">
+                <button id="change-provider-button" class="p-2 -ml-2 rounded-full hover:bg-gray-100 text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                    </svg>
+                </button>
+                <span class="font-bold text-lg text-gray-800">Productos</span>
+                <button id="clear-data-button" class="p-2 -mr-2 rounded-full hover:bg-gray-100 text-[#F9A825]" title="Cargar Nuevo">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                    </svg>
+                </button>
+            </div>
+            <div id="active-provider-logo-container" class="hidden w-full flex justify-center py-2 bg-gray-50 border-b border-gray-100"></div>
+            <div class="px-4 pb-3 pt-1">
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <input type="text" id="search-box" class="input-field pl-10" placeholder="Buscar producto...">
+                </div>
+            </div>
         </header>
 
-        <!-- Buscador (no se encoge) -->
-        <div class="p-4 bg-white border-b border-gray-200 flex-shrink-0">
-            <input type="text" id="search-box" placeholder="Buscar por producto, categoría o fabricante..." class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F9A825]">
-        </div>
+        <main id="product-list" class="flex-1 px-4 pt-4 space-y-3 bg-gray-50"></main>
 
-        <!-- Lista de Productos (ocupa el espacio sobrante y hace scroll) -->
-        <main id="product-list" class="flex-1 p-4 flex flex-col gap-3 overflow-y-auto">
-            <!-- Los productos se inyectan aquí con JS -->
-        </main>
-
-        <!-- Pie de página (no se encoge) -->
-        <footer class="bg-white border-t border-gray-200 shadow-lg p-4 z-10 flex-shrink-0">
-            
-            <!-- NUEVO: Botón para colapsar -->
-            <button id="toggle-summary-button" class="w-full flex justify-center py-1 text-gray-400 hover:text-gray-600">
-                <svg id="toggle-summary-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6 transition-transform">
+        <footer class="z-30 relative">
+            <button id="toggle-summary-button" class="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-white border border-gray-200 rounded-full p-1 shadow-sm text-gray-400 hover:text-[#F9A825]">
+                <svg id="toggle-summary-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 transition-transform duration-300">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                 </svg>
             </button>
 
-            <!-- NUEVO: Sección colapsable -->
-            <div id="collapsible-summary-section" class="transition-all duration-300 overflow-hidden">
-                <!-- Lista del Carrito (desplegable) -->
-                <div id="cart-items" class="max-h-32 overflow-y-auto mb-4 text-sm text-gray-700">
-                    <p id="cart-placeholder" class="text-gray-400 text-center">El carrito está vacío</p>
+            <div id="collapsible-summary-section" class="overflow-hidden transition-all duration-300 px-4 pt-2">
+                <div id="cart-items" class="max-h-28 overflow-y-auto mb-3 text-sm text-gray-600 space-y-1">
+                    <p id="cart-placeholder" class="text-center text-gray-400 italic py-2">Carrito vacío</p>
                 </div>
                 
-                <!-- Resumen de Totales (cuadrícula 2x2) -->
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div class="text-center">
-                        <span class="block text-xs font-medium text-gray-500 uppercase">Total (Base)</span>
-                        <span id="total-price" class="block text-lg font-bold text-blue-600">0.00 €</span>
-                    </div>
-                    <div class="text-center">
-                        <span class="block text-xs font-medium text-gray-500 uppercase">Total (IVA incl.)</span>
-                        <span id="total-price-vat" class="block text-lg font-bold text-gray-900">0.00 €</span>
-                    </div>
-                    <div id="profit-box" class="text-center cursor-pointer censored">
-                        <span class="block text-xs font-medium text-gray-500 uppercase">Beneficio (tocar para ver)</span>
-                        <span id="total-profit" class="block text-lg font-bold text-green-600">0.00 €</span>
-                    </div>
-                    <div class="text-center">
-                        <span class="block text-xs font-medium text-gray-500 uppercase">Items</span>
-                        <span id="total-items" class="block text-lg font-bold text-gray-800">0</span>
-                    </div>
+                <div class="grid grid-cols-2 gap-x-4 gap-y-2 mb-3 text-sm">
+                    <div class="flex justify-between text-gray-600"><span>Base:</span><span id="total-price" class="font-semibold text-gray-900">0.00 €</span></div>
+                    <div class="flex justify-between text-gray-600"><span>Total:</span><span id="total-price-vat" class="font-bold text-gray-900">0.00 €</span></div>
+                    <div id="profit-box" class="flex justify-between text-green-600 cursor-pointer censored"><span>Beneficio:</span><span id="total-profit" class="font-bold">0.00 €</span></div>
+                    <div class="flex justify-between text-gray-500"><span>Items:</span><span id="total-items">0</span></div>
                 </div>
             </div>
-            <!-- FIN Sección colapsable -->
 
-
-            <!-- Botones del pie de página (siempre visibles) -->
-            <div class="flex items-center mt-2"> <!-- Añadido margen por si acaso -->
-                <!-- Botón Limpiar Carrito (Icono) -->
-                <button id="reset-button" class="bg-red-500 text-white font-semibold p-3 rounded-lg shadow-md hover:bg-red-600 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
-                        <path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.816 1.387 2.816 2.951Zm-6.136-1.452a51.196 51.196 0 0 0-3.369 0c-.37.012-.63.29-.63.64v.227h4.639v-.227c0-.35-.26-.628-.63-.64Z" clip-rule="evenodd" />
-                        <path fill-rule="evenodd" d="M5.082 6.975c.04.052.08.105.12.158l.823 10.718a1.5 1.5 0 0 0 1.492 1.396h7.962a1.5 1.5 0 0 0 1.492-1.396l.823-10.718c.04-.053.08-.106.12-.158H5.082Z" clip-rule="evenodd" />
-                    </svg>
+            <div class="flex gap-3 px-4 pb-4 pt-2">
+                <button id="reset-button" class="bg-red-100 text-red-600 p-3.5 rounded-xl hover:bg-red-200 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6"><path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.816 1.387 2.816 2.951Zm-6.136-1.452a51.196 51.196 0 0 0-3.369 0c-.37.012-.63.29-.63.64v.227h4.639v-.227c0-.35-.26-.628-.63-.64Z" clip-rule="evenodd" /><path fill-rule="evenodd" d="M5.082 6.975c.04.052.08.105.12.158l.823 10.718a1.5 1.5 0 0 0 1.492 1.396h7.962a1.5 1.5 0 0 0 1.492-1.396l.823-10.718c.04-.053.08-.106.12-.158H5.082Z" clip-rule="evenodd" /></svg>
                 </button>
-                
-                <!-- Botón Generar Presupuesto -->
-                <button id="generate-budget-button" class="flex-1 bg-[#F9A825] text-white font-semibold py-3 rounded-lg shadow-md hover:bg-[#E6951A] transition-colors ml-3">
-                    Generar Presupuesto
-                </button>
+                <button id="generate-budget-button" class="flex-1 btn-primary shadow-lg shadow-orange-200">Generar Presupuesto</button>
             </div>
         </footer>
     </div>
-    
-    <!-- 3. MODAL DE CONFIRMACIÓN (para "Cargar Nuevo") -->
-    <div id="confirm-modal-overlay" class="fixed inset-0 z-20 flex items-center justify-center p-4 hidden">
-        <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm">
-            <h2 class="text-lg font-bold text-gray-900 mb-4">¿Estás seguro?</h2>
-            <p class="text-gray-600 mb-6">Si cargas un nuevo archivo, se borrarán todos los productos y el carrito actual.</p>
-            <div class="flex justify-end gap-3">
-                <button id="cancel-clear-button" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">
-                    Cancelar
-                </button>
-                <button id="confirm-clear-button" class="bg-red-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-600">
-                    Sí, Cargar Nuevo
-                </button>
+
+    <!-- MODALES -->
+    <div id="confirm-modal-overlay" class="modal-overlay fixed inset-0 flex items-center justify-center p-4 hidden">
+        <div class="modal-content w-full max-w-sm p-6 text-center">
+            <h2 class="text-lg font-bold text-gray-900 mb-2">¿Empezar de cero?</h2>
+            <p class="text-gray-500 mb-6 text-sm">Se borrarán todos los productos cargados y el carrito actual.</p>
+            <div class="flex gap-3">
+                <button id="cancel-clear-button" class="flex-1 btn-secondary">Cancelar</button>
+                <button id="confirm-clear-button" class="flex-1 btn-primary bg-red-500 hover:bg-red-600 text-white shadow-none">Borrar</button>
             </div>
         </div>
     </div>
 
-    <!-- 4. MODAL DE FICHA DE PRODUCTO -->
-    <div id="product-modal-overlay" class="fixed inset-0 z-30 flex items-center justify-center p-4 hidden">
-        <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-lg max-h-[80vh] flex flex-col">
-            <!-- Contenido de la ficha -->
-            <div id="product-modal-content" class="flex-1 overflow-y-auto">
-                <!-- El contenido se inyecta con JS -->
+    <div id="product-modal-overlay" class="modal-overlay fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+        <div class="modal-content w-full max-w-lg max-h-[90vh] flex flex-col rounded-b-none sm:rounded-3xl">
+            <div class="p-6 flex-1 overflow-y-auto" id="product-modal-content"></div>
+            <div class="p-4 border-t border-gray-100">
+                <button id="close-modal-button" class="w-full btn-secondary bg-gray-900 text-white hover:bg-gray-800 border-transparent">Cerrar</button>
             </div>
-            
-            <!-- Botón de cerrar -->
-            <button id="close-modal-button" class="mt-6 w-full bg-gray-600 text-white font-semibold py-3 rounded-lg shadow-md hover:bg-gray-700 transition-colors">
-                Cerrar
-            </button>
         </div>
     </div>
 
-    <!-- 5. MODAL DE PREVIO DE PRESUPUESTO -->
-    <div id="budget-preview-modal-overlay" class="fixed inset-0 z-40 p-4 hidden">
-        <div class="relative w-full max-w-4xl my-8 mx-auto">
-            <!-- Controles (Cerrar, Imprimir, etc.) -->
-            <div id="app-controls" class="bg-gray-800 text-white p-4 rounded-t-lg flex justify-between items-center sticky top-0">
+    <div id="client-info-modal-overlay" class="modal-overlay fixed inset-0 flex items-center justify-center p-4 hidden">
+        <div class="modal-content w-full max-w-sm p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-6">Datos del Presupuesto</h2>
+            <div class="space-y-4">
+                <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Cliente</label><input type="text" id="client-name-input" class="input-field" placeholder="Nombre del cliente"></div>
+                <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Mano de Obra (50€/h)</label><input type="number" id="labor-hours-input" min="0" class="input-field" placeholder="Horas"></div>
                 <div>
-                    <h3 class="text-lg font-semibold">Previo de Presupuesto</h3>
-                    <p class="text-sm text-gray-300">¡Listo! Haz una captura de pantalla o imprime.</p>
-                </div>
-                <div>
-                    <button id="print-budget-button" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg mr-2">
-                        Imprimir / Guardar PDF
-                    </button>
-                    <button id="close-budget-preview-button" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg">
-                        Cerrar
-                    </button>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Tipo de IVA</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center p-3 border rounded-lg flex-1 justify-center cursor-pointer hover:bg-gray-50"><input type="radio" name="iva-type" value="0.21" class="text-[#F9A825] focus:ring-[#F9A825]" checked><span class="ml-2 text-sm font-medium">21%</span></label>
+                        <label class="flex items-center p-3 border rounded-lg flex-1 justify-center cursor-pointer hover:bg-gray-50"><input type="radio" name="iva-type" value="0.10" class="text-[#F9A825] focus:ring-[#F9A825]"><span class="ml-2 text-sm font-medium">10%</span></label>
+                    </div>
                 </div>
             </div>
-            
-            <!-- La "hoja" del presupuesto -->
-            <div id="budget-sheet" class="bg-white text-black p-8">
-                <!-- El contenido se inyecta con JS -->
+            <div class="flex gap-3 mt-8">
+                <button id="cancel-client-info-button" class="flex-1 btn-secondary">Cancelar</button>
+                <button id="confirm-client-info-button" class="flex-1 btn-primary">Ver Presupuesto</button>
             </div>
         </div>
     </div>
-    
-    <!-- 6. MODAL DE INFORMACIÓN DEL CLIENTE (ANTES DEL PREVIO) -->
-    <div id="client-info-modal-overlay" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm">
-            <h2 class="text-lg font-bold text-gray-900 mb-4">Detalles del Presupuesto</h2>
-            
-            <!-- Nombre del Cliente -->
-            <div class="mb-4">
-                <label for="client-name-input" class="block text-sm font-medium text-gray-700 mb-1">Nombre del Cliente</label>
-                <input type="text" id="client-name-input" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F9A825]" placeholder="Ej: Juan Pérez">
-            </div>
-            
-            <!-- Horas de Mano de Obra -->
-            <div class="mb-4">
-                <label for="labor-hours-input" class="block text-sm font-medium text-gray-700 mb-1">Horas de Mano de Obra (50€/h)</label>
-                <input type="number" id="labor-hours-input" min="0" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F9A825]" placeholder="Ej: 2">
-            </div>
-            
-            <!-- Tipo de IVA -->
-            <div class="mb-6">
-                <span class="block text-sm font-medium text-gray-700 mb-2">Tipo de IVA</span>
-                <div class="flex gap-4">
-                    <label for="iva-21" class="flex items-center">
-                        <input type="radio" id="iva-21" name="iva-type" value="0.21" class="focus:ring-[#F9A825] h-4 w-4 text-[#F9A825] border-gray-300" checked>
-                        <span class="ml-2 text-gray-700">Empresa (21%)</span>
-                    </label>
-                    <label for="iva-10" class="flex items-center">
-                        <input type="radio" id="iva-10" name="iva-type" value="0.10" class="focus:ring-[#F9A825] h-4 w-4 text-[#F9A825] border-gray-300">
-                        <span class="ml-2 text-gray-700">Particular (10%)</span>
-                    </label>
-                </div>
-            </div>
 
-            <div class="flex justify-end gap-3">
-                <button id="cancel-client-info-button" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">
-                    Cancelar
-                </button>
-                <button id="confirm-client-info-button" class="bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700">
-                    Continuar
-                </button>
+    <div id="budget-preview-modal-overlay" class="fixed inset-0 z-[60] bg-gray-900 flex flex-col hidden">
+        <div class="bg-white p-3 flex justify-between items-center shadow-md z-10">
+            <div class="text-sm font-medium">Vista Previa</div>
+            <div class="flex gap-2">
+                <button id="close-budget-preview-button" class="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md">Cerrar</button>
+                <button id="print-budget-button" class="px-3 py-1.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md">Guardar PDF</button>
             </div>
         </div>
+        <div class="flex-1 overflow-y-auto p-4 sm:p-8 bg-gray-500/50 flex justify-center">
+            <div id="budget-sheet" class="bg-white shadow-2xl w-full max-w-[210mm] min-h-[297mm] p-8 sm:p-12 text-sm"></div>
+        </div>
     </div>
-    <!-- FIN MODAL -->
 
+    <div id="internal-browser-modal" class="fixed inset-0 z-[70] bg-white flex flex-col hidden">
+        <div class="bg-white border-b border-gray-200 p-2 flex justify-between items-center">
+            <button id="browser-close-btn" class="p-2 hover:bg-gray-100 rounded-full text-gray-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            <span class="font-bold text-sm text-gray-800">Referencia VDS</span>
+            <button id="browser-external-btn" class="p-2 hover:bg-gray-100 rounded-full text-[#F9A825]"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg></button>
+        </div>
+        <div class="flex-1 relative">
+             <iframe id="browser-frame" class="w-full h-full border-0"></iframe>
+             <div id="browser-loading" class="absolute inset-0 flex items-center justify-center bg-white z-10"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#F9A825]"></div></div>
+        </div>
+    </div>
 
     <script>
-        // --- 1. REFERENCIAS A ELEMENTOS DEL DOM ---
-        const importScreen = document.getElementById('import-screen');
-        const calculatorScreen = document.getElementById('calculator-screen');
-        const fileInput = document.getElementById('file-input');
-        const productList = document.getElementById('product-list');
-        const searchBox = document.getElementById('search-box');
-        const errorMessage = document.getElementById('error-message');
-        const clearDataButton = document.getElementById('clear-data-button');
-        
-        const cartItemsContainer = document.getElementById('cart-items');
-        const cartPlaceholder = document.getElementById('cart-placeholder');
-        const totalPriceEl = document.getElementById('total-price');
-        const totalPriceVatEl = document.getElementById('total-price-vat');
-        const totalProfitEl = document.getElementById('total-profit');
-        const totalItemsEl = document.getElementById('total-items');
-        const profitBox = document.getElementById('profit-box');
-        const resetButton = document.getElementById('reset-button');
-        const appManifest = document.getElementById('app-manifest');
+        // CONSTANTES
+        const providerLogos = {
+            "IMEBA": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMDAgMTAwIj4KICA8cmVjdCB4PSI1IiB5PSI1IiB3aWR0aD0iMjkwIiBoZWlnaHQ9IjkwIiByeD0iMTUiIHJ5PSIxNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjREEyOTFDIiBzdHJva2Utd2lkdGg9IjYiLz4KICA8dGV4dCB4PSIxNTAiIHk9Ijg1IiBmb250LWZhbWlseT0iQXJpYWwgQmxhY2ssIEFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXdlaWdodD0iOTAwIiBmb250LXNpemU9IjU1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjREEyOTFDIj5JTUVCQTwvdGV4dD4KICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzMCwgMTUpIj4KICAgIDxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIyNDAiIGhlaWdodD0iMjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgICA8Y2lyY2xlIGN4PSIxMCIgY3k9IjEwIiByPSI2IiBmaWxsPSIjREEyOTFDIi8+CiAgICA8cGF0aCBkPSJNMTYgMTAgTDI2IDUgTDM2IDE1IEw0NiA1IEw1NiAxNSBMNjYgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgICA8dGV4dCB4PSI3NSIgeT0iMTUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzMzMyI+YXV0b21hdGlzbW9zPC90ZXh0PgogIDwvZz4KPC9zdmc+",
+            "VDS": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 550 200'><rect width='550' height='200' fill='black'/><path d='M30 30 L80 100 L30 170 L60 170 L110 100 L60 30 Z' fill='%23F9A825'/><path d='M70 30 L120 100 L70 170 L100 170 L150 100 L100 30 Z' fill='%23F9A825'/><path d='M110 30 L160 100 L110 170 L140 170 L190 100 L140 30 Z' fill='%23F9A825'/><text x='210' y='130' font-family='Arial, sans-serif' font-weight='900' font-size='110' fill='white'>VDS</text><text x='215' y='160' font-family='Arial, sans-serif' font-weight='bold' font-size='20' fill='white' letter-spacing='1'>AUTOMATISMOS</text><text x='215' y='185' font-family='Arial, sans-serif' font-weight='bold' font-size='20' fill='white' letter-spacing='1'>SPAIN</text></svg>"
+        };
 
-        const budgetButton = document.getElementById('generate-budget-button');
-        
-        // NUEVO: Botón colapsable
-        const toggleSummaryButton = document.getElementById('toggle-summary-button');
-        const toggleSummaryIcon = document.getElementById('toggle-summary-icon');
-        const collapsibleSummarySection = document.getElementById('collapsible-summary-section');
+        // VARIABLES
+        let allProducts = [], productMap = {}, cart = {}, uniqueProviders = [], currentProvider = null, currentCategory = null, currentBrowserUrl = '';
+        let importScreen, providerScreen, categoryScreen, calculatorScreen;
+        let fileInput, productList, searchBox, errorMessage;
+        let clearDataButton, changeProviderButton, backToImportButton, backToProviderButton;
+        let activeProviderLogoContainer, providerLogoImgWrapper;
+        let cartItemsContainer, cartPlaceholder, totalPriceEl, totalPriceVatEl, totalProfitEl, totalItemsEl, profitBox;
+        let resetButton, appManifest, budgetButton, toggleSummaryButton, toggleSummaryIcon, collapsibleSummarySection;
+        let confirmModalOverlay, cancelClearButton, confirmClearButton;
+        let productModalOverlay, productModalContent, closeModalButton;
+        let budgetPreviewModalOverlay, budgetSheet, closeBudgetPreviewButton, printBudgetButton;
+        let clientInfoModalOverlay, cancelClientInfoButton, confirmClientInfoButton, clientNameInput, laborHoursInput;
+        let internalBrowserModal, browserFrame, browserCloseBtn, browserExternalBtn, browserLoading;
 
-        // Modal de Confirmación
-        const confirmModalOverlay = document.getElementById('confirm-modal-overlay');
-        const cancelClearButton = document.getElementById('cancel-clear-button');
-        const confirmClearButton = document.getElementById('confirm-clear-button');
+        document.addEventListener('DOMContentLoaded', () => {
+            initDOM();
+            setupEventListeners();
+            loadSavedData();
+        });
 
-        // Modal de Ficha de Producto
-        const productModalOverlay = document.getElementById('product-modal-overlay');
-        const productModalContent = document.getElementById('product-modal-content');
-        const closeModalButton = document.getElementById('close-modal-button');
-        
-        // Modal de Previo de Presupuesto
-        const budgetPreviewModalOverlay = document.getElementById('budget-preview-modal-overlay');
-        const budgetSheet = document.getElementById('budget-sheet');
-        const closeBudgetPreviewButton = document.getElementById('close-budget-preview-button');
-        const printBudgetButton = document.getElementById('print-budget-button');
-        
-        // Modal de Info Cliente
-        const clientInfoModalOverlay = document.getElementById('client-info-modal-overlay');
-        const cancelClientInfoButton = document.getElementById('cancel-client-info-button');
-        const confirmClientInfoButton = document.getElementById('confirm-client-info-button');
-        const clientNameInput = document.getElementById('client-name-input');
-        const laborHoursInput = document.getElementById('labor-hours-input');
+        function initDOM() {
+            importScreen = document.getElementById('import-screen');
+            providerScreen = document.getElementById('provider-screen');
+            categoryScreen = document.getElementById('category-screen');
+            calculatorScreen = document.getElementById('calculator-screen');
+            fileInput = document.getElementById('file-input');
+            productList = document.getElementById('product-list');
+            searchBox = document.getElementById('search-box');
+            errorMessage = document.getElementById('error-message');
+            clearDataButton = document.getElementById('clear-data-button');
+            changeProviderButton = document.getElementById('change-provider-button');
+            backToImportButton = document.getElementById('back-to-import-button');
+            backToProviderButton = document.getElementById('back-to-provider-button');
+            activeProviderLogoContainer = document.getElementById('active-provider-logo-container');
+            providerLogoImgWrapper = document.getElementById('provider-logo-img-wrapper');
+            cartItemsContainer = document.getElementById('cart-items');
+            cartPlaceholder = document.getElementById('cart-placeholder');
+            totalPriceEl = document.getElementById('total-price');
+            totalPriceVatEl = document.getElementById('total-price-vat');
+            totalProfitEl = document.getElementById('total-profit');
+            totalItemsEl = document.getElementById('total-items');
+            profitBox = document.getElementById('profit-box');
+            resetButton = document.getElementById('reset-button');
+            appManifest = document.getElementById('app-manifest');
+            budgetButton = document.getElementById('generate-budget-button');
+            toggleSummaryButton = document.getElementById('toggle-summary-button');
+            toggleSummaryIcon = document.getElementById('toggle-summary-icon');
+            collapsibleSummarySection = document.getElementById('collapsible-summary-section');
+            confirmModalOverlay = document.getElementById('confirm-modal-overlay');
+            cancelClearButton = document.getElementById('cancel-clear-button');
+            confirmClearButton = document.getElementById('confirm-clear-button');
+            productModalOverlay = document.getElementById('product-modal-overlay');
+            productModalContent = document.getElementById('product-modal-content');
+            closeModalButton = document.getElementById('close-modal-button');
+            budgetPreviewModalOverlay = document.getElementById('budget-preview-modal-overlay');
+            budgetSheet = document.getElementById('budget-sheet');
+            closeBudgetPreviewButton = document.getElementById('close-budget-preview-button');
+            printBudgetButton = document.getElementById('print-budget-button');
+            clientInfoModalOverlay = document.getElementById('client-info-modal-overlay');
+            cancelClientInfoButton = document.getElementById('cancel-client-info-button');
+            confirmClientInfoButton = document.getElementById('confirm-client-info-button');
+            clientNameInput = document.getElementById('client-name-input');
+            laborHoursInput = document.getElementById('labor-hours-input');
+            internalBrowserModal = document.getElementById('internal-browser-modal');
+            browserFrame = document.getElementById('browser-frame');
+            browserCloseBtn = document.getElementById('browser-close-btn');
+            browserExternalBtn = document.getElementById('browser-external-btn');
+            browserLoading = document.getElementById('browser-loading');
+        }
 
-
-        // --- 2. ESTADO DE LA APLICACIÓN ---
-        let allProducts = []; // Guarda todos los productos del Excel
-        let productMap = {}; // OPTIMIZACIÓN: Acceso rápido a productos por ID
-        let cart = {}; // Guarda los productos seleccionados { productId: quantity }
-        let currentTotalPrice = 0; // Para el previo (solo productos)
-        let VAT_RATE = 0.21; // 21% de IVA (valor por defecto, se actualiza en el summary)
-
-        // --- 3. LÓGICA DE INICIALIZACIÓN ---
-        document.addEventListener('DOMContentLoaded', initializeApp);
-
-        function initializeApp() {
-            // Generar el manifiesto de la PWA dinámicamente
-            const manifest = {
-                "name": "Carjo Presupuestos",
-                "short_name": "Carjo",
-                "start_url": ".",
-                "display": "standalone",
-                "background_color": "#f3f4f6",
-                "theme_color": "#F9A825",
-                "description": "Calculadora de presupuestos a partir de un Excel.",
-                "icons": [
-                    {
-                        "src": "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%23F9A825%22></circle><path d=%22M75 35H25a5 5 0 0 0-5 5v30a5 5 0 0 0 5 5h50a5 5 0 0 0 5-5V40a5 5 0 0 0-5-5zM30 48h40v-8H30zM30 58h40v-8H30zM50 25l25 10H25l25-10z%22 fill=%22%23ffffff%22></path></svg>",
-                        "sizes": "192x192",
-                        "type": "image/svg+xml"
-                    }
-                ]
-            };
-            const manifestString = JSON.stringify(manifest);
-            appManifest.href = 'data:application/json;base64,' + btoa(unescape(encodeURIComponent(manifestString)));
-
-            // Asignar listeners
+        function setupEventListeners() {
             fileInput.addEventListener('change', handleFileSelect);
             resetButton.addEventListener('click', resetCalculator);
             searchBox.addEventListener('input', filterProducts);
             profitBox.addEventListener('click', toggleProfitVisibility);
-            
-            budgetButton.addEventListener('click', openClientInfoModal); 
-            
-            // NUEVO: Listener para colapsar
+            budgetButton.addEventListener('click', openClientInfoModal);
             toggleSummaryButton.addEventListener('click', toggleSummaryCollapse);
-            
-            // Listeners del modal de confirmación
+            changeProviderButton.addEventListener('click', handleBackButton);
+            backToImportButton.addEventListener('click', () => confirmModalOverlay.classList.remove('hidden'));
+            backToProviderButton.addEventListener('click', showProviderScreen);
             clearDataButton.addEventListener('click', () => confirmModalOverlay.classList.remove('hidden'));
             cancelClearButton.addEventListener('click', () => confirmModalOverlay.classList.add('hidden'));
             confirmClearButton.addEventListener('click', clearAllData);
-            
-            // Listeners del modal de ficha de producto
             closeModalButton.addEventListener('click', () => productModalOverlay.classList.add('hidden'));
-            productModalOverlay.addEventListener('click', (e) => {
-                if (e.target === productModalOverlay) {
-                    productModalOverlay.classList.add('hidden');
-                }
-            });
-            
-            // Listeners del modal de previo
+            productModalOverlay.addEventListener('click', (e) => { if (e.target === productModalOverlay) productModalOverlay.classList.add('hidden'); });
             closeBudgetPreviewButton.addEventListener('click', () => budgetPreviewModalOverlay.classList.add('hidden'));
             printBudgetButton.addEventListener('click', () => window.print());
-
-            // Listeners del modal de info cliente
             cancelClientInfoButton.addEventListener('click', () => clientInfoModalOverlay.classList.add('hidden'));
             confirmClientInfoButton.addEventListener('click', generateBudgetWithClientInfo);
-
-            // OPTIMIZACIÓN: Delegación de eventos para la lista de productos
+            browserCloseBtn.addEventListener('click', closeVDSWeb);
+            browserExternalBtn.addEventListener('click', () => window.open(currentBrowserUrl, '_blank'));
+            browserFrame.addEventListener('load', () => { browserLoading.style.display = 'none'; });
             productList.addEventListener('click', handleProductListClick);
+        }
 
-
-            // Comprobar si hay productos guardados
+        function loadSavedData() {
             const savedProducts = localStorage.getItem('allProducts');
             const savedCart = localStorage.getItem('cart');
-
             if (savedProducts) {
                 try {
                     allProducts = JSON.parse(savedProducts);
-                    // OPTIMIZACIÓN: Crear el mapa de productos al cargar
-                    productMap = allProducts.reduce((map, product) => {
-                        map[product.id] = product;
-                        return map;
-                    }, {});
-                    
-                    if (savedCart) {
-                        cart = JSON.parse(savedCart);
-                    }
-                    
-                    displayProducts(allProducts); 
-                    updateSummary(); // Asegurarse de que el resumen se actualiza con el IVA por defecto
-
+                    productMap = allProducts.reduce((map, product) => { map[product.id] = product; return map; }, {});
+                    uniqueProviders = [...new Set(allProducts.map(p => p.proveedor).filter(Boolean))].sort();
+                    if (savedCart) cart = JSON.parse(savedCart);
+                    updateSummary();
                     importScreen.classList.add('hidden');
-                    calculatorScreen.classList.remove('hidden');
-                    calculatorScreen.classList.add('flex');
-                } catch (e) {
-                    console.error("Error al parsear datos de localStorage", e);
-                    clearAllData();
+                    showProviderScreen();
+                } catch (e) { console.error("Error data", e); clearAllData(); }
+            }
+        }
+
+        function handleBackButton() {
+            let hasCategories = false;
+            if (currentProvider) {
+                 const providerProducts = allProducts.filter(p => p.proveedor === currentProvider);
+                 const categories = [...new Set(providerProducts.map(p => p.categoria).filter(c => c && c.trim() !== ''))];
+                 hasCategories = categories.length > 0;
+            }
+            if (currentProvider && hasCategories) {
+                const providerProducts = allProducts.filter(p => p.proveedor === currentProvider);
+                const categories = [...new Set(providerProducts.map(p => p.categoria).filter(c => c && c.trim() !== ''))].sort();
+                showCategoryScreen(categories);
+                currentCategory = null; 
+            } else { showProviderScreen(); }
+        }
+
+        function switchScreen(screenId) {
+            [importScreen, providerScreen, categoryScreen, calculatorScreen].forEach(el => {
+                if (el) {
+                    if (el.id === screenId) { el.classList.remove('hidden'); el.classList.add('flex'); }
+                    else { el.classList.add('hidden'); el.classList.remove('flex'); }
                 }
+            });
+        }
+
+        function showProviderScreen() {
+            switchScreen('provider-screen');
+            currentCategory = null;
+            renderSelectionGrid('provider-grid', uniqueProviders.length ? uniqueProviders : ["Todos"], 'provider');
+            if(uniqueProviders.length > 0) createSelectionCard(document.getElementById('provider-grid'), "Ver Todos", null, 'provider');
+        }
+        
+        function showCategoryScreen(categories) {
+            switchScreen('category-screen');
+            renderSelectionGrid('category-grid', categories, 'category');
+            createSelectionCard(document.getElementById('category-grid'), "Ver Todo", null, 'category');
+        }
+
+        function renderSelectionGrid(gridId, items, type) {
+            const grid = document.getElementById(gridId);
+            grid.innerHTML = '';
+            items.forEach(item => {
+                let val = item === "Todos" ? null : item; 
+                createSelectionCard(grid, item, val, type);
+            });
+        }
+
+        function createSelectionCard(container, label, value, type) {
+            const btn = document.createElement('div');
+            btn.className = 'selection-card';
+            let iconHtml = '';
+            if (type === 'provider') {
+                let foundLogo = null;
+                if (value) {
+                    const upperLabel = label.toUpperCase();
+                    for (const key in providerLogos) {
+                        if (upperLabel.includes(key.toUpperCase())) { foundLogo = providerLogos[key]; break; }
+                    }
+                }
+                if (foundLogo) {
+                    iconHtml = `<div class="selection-icon"><img src="${foundLogo}" alt="${label}"></div>`;
+                } else {
+                     iconHtml = `<div class="selection-icon"><div class="selection-icon-placeholder"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg></div></div>`;
+                }
+            } else {
+                 iconHtml = `<div class="selection-icon"><div class="selection-icon-placeholder" style="background-color: #eff6ff; color: #3b82f6;"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg></div></div>`;
+            }
+            btn.innerHTML = `${iconHtml}<h3 class="font-bold text-gray-800 text-base leading-tight">${label}</h3>`;
+            btn.onclick = () => type === 'provider' ? selectProvider(value) : selectCategory(value);
+            container.appendChild(btn);
+        }
+
+        function selectProvider(provider) {
+            currentProvider = provider; 
+            activeProviderLogoContainer.innerHTML = '';
+            activeProviderLogoContainer.classList.add('hidden');
+            if (currentProvider) {
+                let foundLogo = null;
+                const upperLabel = currentProvider.toUpperCase();
+                for (const key in providerLogos) {
+                    if (upperLabel.includes(key.toUpperCase())) { foundLogo = providerLogos[key]; break; }
+                }
+                if (foundLogo) {
+                    activeProviderLogoContainer.innerHTML = `<img src="${foundLogo}" class="h-10 object-contain">`;
+                    activeProviderLogoContainer.classList.remove('hidden');
+                }
+            }
+            let providerProducts = currentProvider ? allProducts.filter(p => p.proveedor === currentProvider) : allProducts;
+            const categories = [...new Set(providerProducts.map(p => p.categoria).filter(c => c && c.trim() !== ''))].sort();
+            if (categories.length > 0) {
+                showCategoryScreen(categories);
+            } else {
+                currentCategory = null;
+                goToCalculator(providerProducts);
             }
         }
         
-        // --- 4. LÓGICA DE LECTURA DE ARCHIVO ---
+        function selectCategory(category) {
+            currentCategory = category;
+            let filtered = allProducts;
+            if (currentProvider) filtered = filtered.filter(p => p.proveedor === currentProvider);
+            if (currentCategory) filtered = filtered.filter(p => p.categoria === currentCategory);
+            goToCalculator(filtered);
+        }
+        
+        function goToCalculator(products) {
+            displayProducts(products);
+            switchScreen('calculator-screen');
+            document.getElementById('product-list').scrollTop = 0;
+        }
 
         function handleFileSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
-
-            if (!file.name.endsWith('.csv') && !file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
-                showError('Por favor, sube un archivo .csv o .xlsx');
-                return;
-            }
-            
-            errorMessage.classList.add('hidden');
             const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const sheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[sheetName];
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                    
-                    parseData(jsonData);
-
-                } catch (err) {
-                    console.error(err);
-                    showError('Error al procesar el archivo.');
-                }
+            reader.onload = (e) => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
+                parseData(jsonData);
             };
-            
-            reader.onerror = function() {
-                showError('No se pudo leer el archivo.');
-            };
-            
             reader.readAsArrayBuffer(file);
         }
 
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.classList.remove('hidden');
-        }
-
         function parseData(data) {
-            allProducts = [];
-            productMap = {}; // Limpiar mapa
-            if (data.length < 2) {
-                showError('El archivo está vacío o no tiene datos.');
-                return;
-            }
-
+            if (data.length < 2) return;
             const header = data[0].map(h => String(h).toLowerCase().trim());
-            
-            // Columnas obligatorias
-            const nameIndex = header.indexOf('componente');
-            const priceIndex = header.indexOf('precio pvp (€)');
-            const costIndex = header.indexOf('coste tras descuentos');
-            
-            // Columnas opcionales
-            const descIndex = header.indexOf('descripción');
-            const brandIndex = header.indexOf('fabricante');
-            const catIndex = header.indexOf('categoría');
-            const imgIndex = header.indexOf('imagen_fabricante');
+            const idx = {
+                name: header.indexOf('componente'),
+                price: header.indexOf('precio pvp (€)'),
+                cost: header.indexOf('coste tras descuentos'),
+                desc: header.indexOf('descripción'),
+                brand: header.indexOf('fabricante'),
+                cat: header.indexOf('categoría'),
+                img: header.indexOf('imagen_fabricante'),
+                imgProd: header.indexOf('imagen_producto'),
+                prov: header.findIndex(h => h.includes('proveedor'))
+            };
 
-            if (nameIndex === -1 || priceIndex === -1 || costIndex === -1) {
-                let missing = [];
-                if (nameIndex === -1) missing.push('"componente"');
-                if (priceIndex === -1) missing.push('"precio pvp (€)"');
-                if (costIndex === -1) missing.push('"coste tras descuentos"');
-                showError(`Faltan columnas requeridas: ${missing.join(', ')}.`);
+            if (idx.name === -1 || idx.price === -1 || idx.cost === -1) {
+                errorMessage.textContent = "Faltan columnas: Componente, Precio PVP (€), Coste tras descuentos";
+                errorMessage.classList.remove('hidden');
                 return;
             }
 
+            allProducts = [];
+            productMap = {};
             for (let i = 1; i < data.length; i++) {
                 const row = data[i];
                 if (!row || row.length === 0) continue;
-
-                const nombre = row[nameIndex];
-                const precioVenta = parseFloat(row[priceIndex]);
-                const costo = parseFloat(row[costIndex]);
-
-                if (nombre && !isNaN(precioVenta) && !isNaN(costo)) {
+                const price = parseFloat(row[idx.price]);
+                const cost = parseFloat(row[idx.cost]);
+                if (row[idx.name] && !isNaN(price)) {
+                    let prov = '';
+                    if (idx.prov > -1 && row[idx.prov]) prov = String(row[idx.prov]).trim();
+                    else if (idx.brand > -1 && row[idx.brand]) prov = String(row[idx.brand]).trim();
                     const product = {
-                        id: `prod-${i}`,
-                        nombre: String(nombre).trim(),
-                        precio: precioVenta,
-                        costo: costo,
-                        descripcion: descIndex > -1 ? String(row[descIndex] || '').trim() : '',
-                        fabricante: brandIndex > -1 ? String(row[brandIndex] || '').trim() : '',
-                        categoria: catIndex > -1 ? String(row[catIndex] || '').trim() : '',
-                        imagen: imgIndex > -1 ? String(row[imgIndex] || '').trim() : ''
+                        id: `p${i}`,
+                        nombre: String(row[idx.name]).trim(),
+                        precio: price,
+                        costo: !isNaN(cost) ? cost : 0,
+                        descripcion: idx.desc > -1 ? String(row[idx.desc] || '').trim() : '',
+                        fabricante: idx.brand > -1 ? String(row[idx.brand] || '').trim() : '',
+                        categoria: idx.cat > -1 ? String(row[idx.cat] || '').trim() : '',
+                        imagen: (idx.imgProd > -1 && row[idx.imgProd]) ? String(row[idx.imgProd]).trim() : 
+                                (idx.img > -1 && row[idx.img] ? String(row[idx.img]).trim() : ''),
+                        proveedor: prov
                     };
                     allProducts.push(product);
-                    productMap[product.id] = product; // OPTIMIZACIÓN: Poblar el mapa
+                    productMap[product.id] = product;
                 }
             }
-
+            uniqueProviders = [...new Set(allProducts.map(p => p.proveedor).filter(Boolean))].sort();
             localStorage.setItem('allProducts', JSON.stringify(allProducts));
             cart = {};
             localStorage.removeItem('cart');
-            displayProducts(allProducts);
-            updateSummary(); 
+            updateSummary();
             importScreen.classList.add('hidden');
-            calculatorScreen.classList.remove('hidden');
-            calculatorScreen.classList.add('flex');
+            showProviderScreen();
         }
 
-        // --- 5. LÓGICA DE RENDERIZADO (VISTAS) ---
-
-        function displayProducts(productsToDisplay) {
-            productList.innerHTML = ''; // Limpiar lista
+        function displayProducts(list) {
+            // CAMBIO: Lista de productos en GRID para tablets y desktop
+            const container = productList;
+            // Reseteamos clases para asegurar que no haya conflicto
+            container.className = "flex-1 px-4 pt-4 bg-gray-50 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 content-start";
             
-            if (productsToDisplay.length === 0) {
-                productList.innerHTML = '<p class="col-span-full text-center text-gray-500">No se encontraron productos.</p>';
+            container.innerHTML = '';
+            if (list.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-400 mt-10 italic col-span-full">Sin resultados</p>';
                 return;
             }
-
-            const fragment = document.createDocumentFragment(); // Usar fragmento para mejor rendimiento
-
-            productsToDisplay.forEach(product => {
+            const frag = document.createDocumentFragment();
+            list.forEach(p => {
                 const card = document.createElement('div');
-                card.className = "bg-white p-4 rounded-lg shadow-md flex items-center gap-4";
-                
-                // OPTIMIZACIÓN: Añadir data-attributes para delegación y filtrado
-                card.dataset.productId = product.id;
-                card.dataset.nombre = product.nombre.toLowerCase();
-                card.dataset.categoria = (product.categoria || '').toLowerCase();
-                card.dataset.fabricante = (product.fabricante || '').toLowerCase();
-                
-                const quantity = cart[product.id] || 0;
-                const priceWithVat = product.precio * (1 + 0.21); // IVA por defecto para la lista
-                
-                let imgHtml = '';
-                if (product.imagen) {
-                    imgHtml = `<img src="${product.imagen}" alt="${product.fabricante}" class="w-14 h-14 object-contain rounded-md bg-gray-50 border p-1 product-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-                               <div class="w-14 h-14 rounded-md bg-gray-100 flex items-center justify-center text-gray-400 border product-placeholder" style="display:none;">
-                                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm1.5-6a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" /></svg>
-                               </div>`;
-                } else {
-                    imgHtml = `<div class="w-14 h-14 rounded-md bg-gray-100 flex items-center justify-center text-gray-400 border product-placeholder">
-                                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm1.5-6a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" /></svg>
-                               </div>`;
+                card.className = 'product-card';
+                card.dataset.pid = p.id;
+                const isVDS = p.proveedor && p.proveedor.toUpperCase().includes('VDS');
+                let vdsBtn = '';
+                if(isVDS) {
+                    let term = p.descripcion.match(/Ref:\s*([^.]+)/i)?.[1]?.trim() || p.nombre;
+                    const safeTerm = term.replace(/'/g, "\\'");
+                    vdsBtn = `<button onclick="openVDSWeb(event, '${safeTerm}')" class="ml-2 text-orange-400 hover:text-orange-600 p-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg></button>`;
                 }
-                
-                // OPTIMIZACIÓN: Quitar onclick= de los botones
+                let img = `<div class="w-14 h-14 rounded-lg bg-gray-100 flex items-center justify-center text-gray-300"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>`;
+                if (!p.imagen && p.proveedor) {
+                    const upperProv = p.proveedor.toUpperCase();
+                    for (const k in providerLogos) {
+                        if (upperProv.includes(k)) {
+                            img = `<div class="w-14 h-14 flex items-center justify-center p-1 bg-white border border-gray-100 rounded-lg"><img src="${providerLogos[k]}" class="max-w-full max-h-full object-contain"></div>`;
+                            break;
+                        }
+                    }
+                } else if (p.imagen) {
+                    img = `<img src="${p.imagen}" class="w-14 h-14 object-contain rounded-lg bg-white border border-gray-100" onerror="this.style.display='none';">`;
+                }
+                const priceVat = (p.precio * 1.21).toFixed(2);
+                const qty = cart[p.id] || 0;
                 card.innerHTML = `
-                    ${imgHtml}
+                    ${img}
                     <div class="flex-1 min-w-0">
-                        <a href="#" class="block font-semibold text-gray-800 text-md truncate hover:underline product-link">
-                            ${product.nombre}
-                        </a>
-                        <div class"mt-1">
-                            <p class="text-blue-600 font-semibold text-xs">
-                                ${product.precio.toFixed(2)} € <span class="text-gray-500 font-normal">(Base)</span>
-                            </p>
-                            <p class="text-gray-900 font-bold text-md">
-                                ${priceWithVat.toFixed(2)} € <span class="text-gray-600 font-normal text-xs">(IVA incl.)</span>
-                            </p>
+                        <div class="flex items-center">
+                            <span class="font-semibold text-gray-800 text-sm truncate product-link cursor-pointer hover:text-[#F9A825]">${p.nombre}</span>
+                            ${vdsBtn}
+                        </div>
+                        <div class="flex items-baseline gap-2 mt-0.5">
+                            <span class="text-[#F9A825] font-bold text-sm">${p.precio.toFixed(2)}€</span>
+                            <span class="text-gray-400 text-xs">${priceVat}€ inc.</span>
                         </div>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <button class="qty-btn bg-red-500 btn-decrement">-</button>
-                        <span id="qty-${product.id}" class="font-bold text-lg w-8 text-center">${quantity}</span>
-                        <button class="qty-btn bg-green-600 btn-increment">+</button>
+                    <div class="flex items-center gap-2 bg-gray-50 rounded-lg p-1">
+                        <button class="w-8 h-8 flex items-center justify-center bg-white border border-gray-200 rounded-md text-red-500 btn-decrement shadow-sm active:bg-red-50">-</button>
+                        <span class="w-6 text-center font-bold text-gray-700 text-sm" id="qty-${p.id}">${qty}</span>
+                        <button class="w-8 h-8 flex items-center justify-center bg-[#F9A825] rounded-md text-white btn-increment shadow-sm active:bg-orange-600">+</button>
                     </div>
                 `;
-                
-                fragment.appendChild(card);
+                frag.appendChild(card);
             });
-            
-            productList.appendChild(fragment); // Añadir todos los elementos al DOM de una sola vez
+            productList.appendChild(frag);
         }
 
-        /**
-         * OPTIMIZACIÓN: Nueva función de filtrado rápido.
-         * En lugar de redibujar, solo oculta/muestra elementos.
-         */
-        function filterProducts() {
-            const query = searchBox.value.toLowerCase();
-            const products = productList.children;
-            let count = 0;
+        function handleProductListClick(e) {
+            const t = e.target;
+            const card = t.closest('.product-card');
+            if (!card) return;
+            const pid = card.dataset.pid;
+            if (t.closest('.btn-increment')) updateCart(pid, 1);
+            else if (t.closest('.btn-decrement')) updateCart(pid, -1);
+            else if (t.closest('.product-link')) showProductModal(pid);
+        }
 
-            for (const productCard of products) {
-                // El primer hijo puede ser el <p> de "No se encontraron"
-                if (!productCard.dataset.productId) continue; 
-                
-                const nombre = productCard.dataset.nombre;
-                const categoria = productCard.dataset.categoria;
-                const fabricante = productCard.dataset.fabricante;
+        function updateCart(pid, delta) {
+            const current = cart[pid] || 0;
+            const newQty = current + delta;
+            if (newQty <= 0) delete cart[pid];
+            else cart[pid] = newQty;
+            const el = document.getElementById(`qty-${pid}`);
+            if(el) el.textContent = cart[pid] || 0;
+            updateSummary();
+        }
 
-                if (nombre.includes(query) || categoria.includes(query) || fabricante.includes(query)) {
-                    productCard.classList.remove('hidden');
-                    count++;
-                } else {
-                    productCard.classList.add('hidden');
+        function updateSummary() {
+            if(!cartItemsContainer) return;
+            let total = 0; let cost = 0; let count = 0;
+            cartItemsContainer.innerHTML = '';
+            if (Object.keys(cart).length === 0) {
+                cartPlaceholder.classList.remove('hidden');
+            } else {
+                cartPlaceholder.classList.add('hidden');
+                for (const [pid, qty] of Object.entries(cart)) {
+                    const p = productMap[pid];
+                    if(p) {
+                        total += p.precio * qty;
+                        cost += p.costo * qty;
+                        count += qty;
+                        const div = document.createElement('div');
+                        div.className = 'flex justify-between py-1 border-b border-gray-50 last:border-0';
+                        div.innerHTML = `<span class="truncate w-2/3"><span class="font-bold text-[#F9A825]">${qty}x</span> ${p.nombre}</span><span>${(p.precio * qty).toFixed(2)}€</span>`;
+                        cartItemsContainer.appendChild(div);
+                    }
                 }
             }
+            const vat = total * 0.21;
+            totalPriceEl.textContent = total.toFixed(2) + ' €';
+            totalPriceVatEl.textContent = (total + vat).toFixed(2) + ' €';
+            totalProfitEl.textContent = (total - cost).toFixed(2) + ' €';
+            totalItemsEl.textContent = count;
+            try { localStorage.setItem('cart', JSON.stringify(cart)); } catch(e) {}
         }
-        
-        /**
-         * OPTIMIZACIÓN: Nueva función para manejar todos los clics en la lista.
-         */
-        function handleProductListClick(event) {
-            const target = event.target;
-            
-            // Encontrar el producto (card) al que se hizo clic
-            const card = target.closest('[data-product-id]');
-            if (!card) return;
-            
-            const productId = card.dataset.productId;
-            
-            // Comprobar si se hizo clic en el botón +
-            if (target.closest('.btn-increment')) {
-                incrementQuantity(productId);
-                return;
-            }
-            
-            // Comprobar si se hizo clic en el botón -
-            if (target.closest('.btn-decrement')) {
-                decrementQuantity(productId);
-                return;
-            }
-            
-            // Comprobar si se hizo clic en el enlace del producto
-            if (target.closest('.product-link')) {
-                event.preventDefault(); // Evitar que el <a> navegue
-                showProductModal(productId);
-                return;
+
+        function filterProducts() {
+            const term = searchBox.value.toLowerCase();
+            const cards = productList.children;
+            for (const c of cards) {
+                if (!c.dataset.pid) continue;
+                const p = productMap[c.dataset.pid];
+                const match = p.nombre.toLowerCase().includes(term) || 
+                              p.categoria.toLowerCase().includes(term) || 
+                              p.fabricante.toLowerCase().includes(term);
+                c.style.display = match ? 'flex' : 'none';
             }
         }
 
-        
-        function showProductModal(productId) {
-            const product = productMap[productId]; // OPTIMIZACIÓN: Búsqueda O(1)
-            if (!product) return;
-            
-            // Usar 21% por defecto para la ficha de producto
-            const priceWithVat = product.precio * (1 + 0.21); 
-            
-            let detailsHtml = '';
-            if (product.fabricante) {
-                detailsHtml += `<p class="text-md text-gray-600 mb-1"><span class="font-semibold">Fabricante:</span> ${product.fabricante}</p>`;
+        function showProductModal(pid) {
+            const p = productMap[pid];
+            const content = productModalContent;
+            const priceVat = (p.precio * 1.21).toFixed(2);
+            let vdsBtn = '';
+            if (p.proveedor && p.proveedor.toUpperCase().includes('VDS')) {
+                 let term = p.descripcion.match(/Ref:\s*([^.]+)/i)?.[1]?.trim() || p.nombre;
+                 const safeTerm = term.replace(/'/g, "\\'");
+                 vdsBtn = `<button onclick="openVDSWeb(event, '${safeTerm}')" class="w-full mt-4 btn-primary flex items-center justify-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg> Ver en Web VDS</button>`;
             }
-            if (product.categoria) {
-                detailsHtml += `<p class="text-md text-gray-600 mb-4"><span class="font-semibold">Categoría:</span> ${product.categoria}</p>`;
-            }
-
-            let imgHtml = '';
-            if (product.imagen) {
-                imgHtml = `<img src="${product.imagen}" alt="${product.fabricante}" class="w-full h-32 object-contain rounded-lg bg-gray-50 border p-2 mb-4" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-                           <div class="w-full h-32 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 border mb-4" style="display:none;">
-                               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm1.5-6a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" /></svg>
-                           </div>`;
-            } else {
-                imgHtml = `<div class="w-full h-32 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 border mb-4">
-                               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm1.5-6a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" /></svg>
-                           </div>`;
-            }
-
-            productModalContent.innerHTML = `
-                ${imgHtml}
-                <h2 class="text-2xl font-bold text-gray-900 mb-2">${product.nombre}</h2>
-                ${detailsHtml}
-                <div class="bg-gray-50 p-4 rounded-lg mb-4">
-                    <p class="text-blue-600 font-semibold text-sm">
-                        ${product.precio.toFixed(2)} € <span class="text-gray-500 font-normal">(Base)</span>
-                    </p>
-                    <p class="text-gray-900 font-bold text-lg">
-                        ${priceWithVat.toFixed(2)} € <span class="text-gray-600 font-normal text-sm">(IVA incl.)</span>
-                    </p>
+            content.innerHTML = `
+                <h2 class="text-xl font-bold text-gray-900 mb-1">${p.nombre}</h2>
+                <p class="text-sm text-gray-500 mb-4">${p.proveedor} · ${p.categoria}</p>
+                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100 mb-4">
+                    <div class="flex justify-between items-baseline mb-1">
+                        <span class="text-sm text-gray-500">Precio Base</span>
+                        <span class="text-lg font-bold text-[#F9A825]">${p.precio.toFixed(2)} €</span>
+                    </div>
+                    <div class="flex justify-between items-baseline">
+                        <span class="text-sm text-gray-500">Con IVA (21%)</span>
+                        <span class="text-base font-semibold text-gray-900">${priceVat} €</span>
+                    </div>
                 </div>
-                ${product.descripcion ? `
-                    <h3 class="font-semibold text-gray-800 mb-2">Descripción</h3>
-                    <p class="text-gray-600 whitespace-pre-wrap">${product.descripcion}</p>
-                ` : ''}
+                <div class="prose prose-sm text-gray-600">
+                    <h4 class="text-xs font-bold uppercase text-gray-400 tracking-wide mb-2">Descripción</h4>
+                    <p class="leading-relaxed">${p.descripcion || 'Sin descripción detallada.'}</p>
+                </div>
+                ${vdsBtn}
             `;
             productModalOverlay.classList.remove('hidden');
         }
 
-
-        // --- 6. LÓGICA DEL CARRITO ---
-
-        // OPTIMIZACIÓN: Quitar parámetro 'event'
-        function incrementQuantity(productId) {
-            const currentQty = cart[productId] || 0;
-            cart[productId] = currentQty + 1;
-            
-            updateQuantityUI(productId);
-            updateSummary();
-        }
-
-        // OPTIMIZACIÓN: Quitar parámetro 'event'
-        function decrementQuantity(productId) {
-            const currentQty = cart[productId] || 0;
-            
-            if (currentQty > 0) {
-                cart[productId] = currentQty - 1;
-                if (cart[productId] === 0) {
-                    delete cart[productId];
-                }
-            }
-            
-            updateQuantityUI(productId);
-            updateSummary();
-        }
-
-        /**
-         * Actualiza solo el número (cantidad) en la lista de productos.
-         */
-        function updateQuantityUI(productId) {
-            const qtyEl = document.getElementById(`qty-${productId}`);
-            if (qtyEl) {
-                qtyEl.textContent = cart[productId] || 0;
-            }
-        }
-
-        function updateSummary() {
-            let totalPrice = 0;
-            let totalCost = 0;
-            let totalItems = 0;
-            
-            // Usar 21% por defecto para el resumen, ya que no se ha elegido cliente
-            const currentVatRate = 0.21; 
-
-            cartItemsContainer.innerHTML = '';
-            if (Object.keys(cart).length === 0) {
-                cartItemsContainer.appendChild(cartPlaceholder);
-                cartPlaceholder.classList.remove('hidden');
-            } else {
-                cartPlaceholder.classList.add('hidden');
-                
-                for (const productId in cart) {
-                    const quantity = cart[productId];
-                    if (quantity === 0) continue;
-                    
-                    const product = productMap[productId]; // OPTIMIZACIÓN: Búsqueda O(1)
-                    if (!product) continue;
-
-                    totalPrice += product.precio * quantity;
-                    totalCost += product.costo * quantity;
-                    totalItems += quantity;
-                    
-                    // Usar 21% por defecto para la lista del carrito
-                    const itemPriceVat = (product.precio * quantity) * (1 + currentVatRate); 
-
-                    const itemEl = document.createElement('div');
-                    itemEl.className = 'flex justify-between items-center py-1 px-2 even:bg-gray-50 rounded';
-                    itemEl.innerHTML = `
-                        <span class="flex-1 min-w-0 pr-2">
-                            <span class="font-semibold text-blue-600">${quantity}x</span> 
-                            <span class="truncate">${product.nombre}</span>
-                        </span>
-                        <span class="font-medium text-right">
-                            <span class="block text-blue-600 text-xs">${(product.precio * quantity).toFixed(2)} € <span class="text-gray-500">(Base)</span></span>
-                            <span class="block text-gray-900 text-sm font-semibold">${itemPriceVat.toFixed(2)} € <span class="text-gray-600 text-xs">(IVA incl.)</span></span>
-                        </span>
-                    `;
-                    cartItemsContainer.appendChild(itemEl);
-                }
-            }
-            
-            currentTotalPrice = totalPrice; // Guardar para el previo (solo productos)
-            const totalProfit = totalPrice - totalCost; 
-            const totalPriceWithVat = totalPrice * (1 + currentVatRate);
-
-            totalPriceEl.textContent = `${totalPrice.toFixed(2)} €`;
-            totalPriceVatEl.textContent = `${totalPriceWithVat.toFixed(2)} €`;
-            totalProfitEl.textContent = `${totalProfit.toFixed(2)} €`;
-            totalItemsEl.textContent = totalItems;
-
-            try {
-                localStorage.setItem('cart', JSON.stringify(cart));
-            } catch (e) {
-                console.error("Error al guardar el carrito en localStorage", e);
-            }
-        }
-
         function resetCalculator() {
-            cart = {};
-            localStorage.removeItem('cart');
-            updateSummary();
-            
-            // OPTIMIZACIÓN: Resetear el filtro rápido en lugar de redibujar
-            const products = productList.children;
-            for (const productCard of products) {
-                if (!productCard.dataset.productId) continue; 
-                productCard.classList.remove('hidden');
-                // Resetear el contador de cantidad
-                const qtyEl = productCard.querySelector(`[id^="qty-"]`);
-                if(qtyEl) qtyEl.textContent = '0';
-            }
-            searchBox.value = ''; // Limpiar el buscador
-            
-            profitBox.classList.add('censored'); 
+            cart = {}; updateSummary();
+            document.querySelectorAll('[id^="qty-"]').forEach(el => el.textContent = '0');
+            profitBox.classList.add('censored');
         }
-
         function clearAllData() {
-            confirmModalOverlay.classList.add('hidden');
-            localStorage.removeItem('allProducts');
-            localStorage.removeItem('cart');
-            location.reload(); 
+            localStorage.clear(); location.reload();
         }
-        
         function toggleProfitVisibility() {
             profitBox.classList.toggle('censored');
         }
-
-        // --- NUEVO: Función para colapsar ---
         function toggleSummaryCollapse() {
-            const isHidden = collapsibleSummarySection.classList.toggle('hidden');
-            if (isHidden) {
-                toggleSummaryIcon.style.transform = 'rotate(180deg)';
-            } else {
+            if(collapsibleSummarySection.style.maxHeight) {
+                collapsibleSummarySection.style.maxHeight = null;
                 toggleSummaryIcon.style.transform = 'rotate(0deg)';
+            } else {
+                collapsibleSummarySection.style.maxHeight = '0px';
+                toggleSummaryIcon.style.transform = 'rotate(180deg)';
             }
         }
-        
-        // --- 7. LÓGICA: PREVIO DE PRESUPUESTO ---
-        
+        function openVDSWeb(e, ref) {
+            e.stopPropagation();
+            currentBrowserUrl = `https://www.vdsautomatismos.es/?s=${encodeURIComponent(ref)}&post_type=product&dgwt_wcas=1`;
+            browserFrame.src = currentBrowserUrl;
+            browserLoading.style.display = 'flex';
+            internalBrowserModal.classList.remove('hidden');
+        }
+        function closeVDSWeb() {
+            internalBrowserModal.classList.add('hidden');
+            setTimeout(() => browserFrame.src = '', 200);
+        }
+
         function openClientInfoModal() {
-            if (Object.keys(cart).length === 0) {
-                // Permitir abrir si hay horas de mano de obra
-                if (!laborHoursInput.value || parseFloat(laborHoursInput.value) === 0) {
-                     console.log("El carrito está vacío y no hay horas.");
-                     return;
-                }
+            if (Object.keys(cart).length === 0 && (!laborHoursInput.value || parseFloat(laborHoursInput.value) === 0)) {
+                alert("Añade productos o mano de obra para generar un presupuesto.");
+                return;
             }
-            clientNameInput.value = ''; // Limpiar el campo
-            laborHoursInput.value = ''; // Limpiar horas
+            clientNameInput.value = ''; laborHoursInput.value = '';
             clientInfoModalOverlay.classList.remove('hidden');
         }
-        
+
         function generateBudgetWithClientInfo() {
-            const ivaRate = parseFloat(document.querySelector('input[name="iva-type"]:checked').value);
-            let clientName = clientNameInput.value.trim();
-            let laborHours = parseFloat(laborHoursInput.value) || 0; // <-- NUEVO: Leer horas
-            
-            if (clientName === '') {
-                clientName = 'Cliente'; // Valor por defecto
-            }
-            
-            // Validar que hay algo que presupuestar
-            if (Object.keys(cart).length === 0 && laborHours === 0) {
-                 console.log("Nada que presupuestar.");
-                 return;
-            }
-            
+            const client = clientNameInput.value.trim() || 'Cliente';
+            const hours = parseFloat(laborHoursInput.value) || 0;
+            const iva = parseFloat(document.querySelector('input[name="iva-type"]:checked').value);
             clientInfoModalOverlay.classList.add('hidden');
-            showBudgetPreview(clientName, ivaRate, laborHours); // <-- NUEVO: Pasar horas
+            renderBudgetSheet(client, hours, iva);
         }
-        
-        // CAMBIO: Aceptar laborHours
-        function showBudgetPreview(clientName, ivaRate, laborHours) {
-            
-            // Logo (PNG Data URI)
-            const logo = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAADs0lEQVR4nO2dW27bMBAwVbVzB/EGOeUWeYI8QR/BTu8g3SBvEG8QbxBvkG+Qb5Bv0N2+gMBeiZQN6VA0W+kkh0RkRIqkkqR0fnx2Z8czkEREvn4REREREZHHgJg/E0iAG+C1s/o3AXwXgD8A+D6AeQDsA/gXwzmLf3cRkQ/AnwG8B+D7F8Dv2wH8WzM5y/35B8DxvQx/IwL4tJm85b4rBtA/APgwwP9rBH6pB+S+qwbQmAA+pvH/rwH8bwG5b5sBNCrArzX8vxLA/xKQ+7YYQGNCAH/X8P8agY9rkPuWEkBjAvhcw/+bAXz8gNyXGgBjQgD/1sD/VQL4LwK5LzUAxiQC+KqB/2sEftgCua8yAMYkAvg6gf+bAfxgB+RXKQBjEgH8VsP/qwTwyw7Ir1QBxCRKAD/V8P8agR9rkF+VAYhJpAA+T+D/JgB/tkF+lQYgJlEC+KmB/ysE8MsK5FdpAGKSDMAnBv6vEfhhB+RXKQBiigyAJwb+bwLwRwvkV2gAYpIMwCcG/q8R+GEH5FcpgJgkA/BJgf+bALxkA/IrFICYSALgSwb+rxH4YA/kVyDAYqIIgC8Z+L8JwC/ZIL9CAhCTYAB+b+D/KgF8yQb5FQhATCIB8HsD/zcB+EsW5FcgADEJBsDvDfyvEfjBDsjvUYAxSQXA7w383wTglWyQ36MAYpIKgN8b+L9KAF+yQX6NAhCTdAD+YOD/GgE/bIL8GgUgJskA/MHA/00AfsgG+TUKQEySAfiDgX8FAr5kg/waBSAm4QD8wcD/NQJ+2AT5NQpATMID+IOB/5sA/JEN8msegJjEAfjDgX8lAv5kg/yaiACYSAfgDwP/1wjoJkF+0wQgJvEAfjDwfxOAH7JBfssEIHImAfhhgP+rBPB/fSD3LTiAGCdPAD/M8P8agR9qkPuWH0CMkwngeyT+bwLwQwvkviUFEGNkAviThv9XCfzyA7lvKQHENEYAf9Lw/xoBH6ZA7ltGAHFMJoBvkfh/E4BfbpD7ljJADOObAHzI8P8qgV9ukPuWMkAcywPwtYb/1wjoIRfkviUEEMd5AvisgP+bAPy+BfkviQLEMc4AfNbA/1UCP2xA/kviADEscwD4rIb/1wh8yID8l0gA4ljmAHAk9H8TgN9sQP5LIgDEsYwB4Mjof5XAzzUgf/UTgBgWMwAcif6vEfghA/KvfgBiOMYAOCL/fwOAv2lA/qofgBgOMwAcEftXSgC/1kD+VT+AOBwOAEdi/9cI/GAF8q/6AcRh+ADgxwd/ZwF4ZQL5l0ZEREREREREPvEXl1m8F/JqY3wAAAAASUVORK5CYII=";
-            
-            let tableHtml = `<table id="budget-table">
-                                <thead>
-                                    <tr>
-                                        <th>Cant.</th>
-                                        <th>Descripción</th>
-                                        <th class="text-right">P. Unit (Base)</th>
-                                        <th class="text-right">Total (Base)</th>
-                                    </tr>
-                                </thead>
-                                <tbody>`;
-            
-            // Usamos el total de productos que ya teníamos
-            let productTotalPrice = currentTotalPrice; 
-            
-            for (const productId in cart) {
-                const quantity = cart[productId];
-                if (quantity === 0) continue;
+
+        function renderBudgetSheet(client, hours, iva) {
+            try {
+                const sheet = budgetSheet;
+                const date = new Date().toLocaleDateString('es-ES', {day: 'numeric', month: 'long', year: 'numeric'});
+                const logo = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAADs0lEQVR4nO2dW27bMBAwVbVzB/EGOeUWeYI8QR/BTu8g3SBvEG8QbxBvkG+Qb5Bv0N2+gMBeiZQN6VA0W+kkh0RkRIqkkqR0fnx2Z8czkEREvn4REREREZHHgJg/E0iAG+C1s/o3AXwXgD8A+D6AeQDsA/gXwzmLf3cRkQ/AnwG8B+D7F8Dv2wH8WzM5y/35B8DxvQx/IwL4tJm85b4rBtA/APgwwP9rBH6pB+S+qwbQmAA+pvH/rwH8bwG5b5sBNCrArzX8vxLA/xKQ+7YYQGNCAH/X8P8agY9rkPuWEkBjAvhcw/+bAXz8gNyXGgBjQgD/1sD/VQL4LwK5LzUAxiQC+KqB/2sEftgCua8yAMYkAvg6gf+bAfxgB+RXKQBjEgH8VsP/qwTwyw7Ir1QBxCRKAD/V8P8agR9rkF+VAYhJpAA+T+D/JgB/tkF+lQYgJlEC+KmB/ysE8MsK5FdpAGKSDMAnBv6vEfhhB+RXKQBiigyAJwb+bwLwRwvkV2gAYpIMwCcG/q8R+GEH5FcpgJgkA/BJgf+bALxkA/IrFICYSALgSwb+rxH4YA/kVyDAYqIIgC8Z+L8JwC/ZIL9CAhCTYAB+b+D/KgF8yQb5FQhATCIB8HsD/zcB+EsW5FcgADEJBsDvDfyvEfjBDsjvUYAxSQXA7w383wTglWyQ36MAYpIKgN8b+L9KAF+yQX6NAhCTdAD+YOD/GgE/bIL8GgUgJskA/MHA/00AfsgG+TUKQEySAfiDgX8FAr5kg/waBSAm4QD8wcD/NQJ+2AT5NQpATMID+IOB/5sA/JEN8msegJjEAfjDgX8lAv5kg/yaiACYSAfgDwP/1wjoJkF+0wQgJvEAfjDwfxOAH7JBfssEIHImAfhhgP+rBPB/fSD3LTiAGCdPAD/M8P8agR9qkPuWH0CMkwngeyT+bwLwQwvkviUFEGNkAviThv9XCfzyA7lvKQHENEYAf9Lw/xoBH6ZA7ltGAHFMJoBvkfh/E4BfbpD7ljJADOObAHzI8P8qgV9ukPuWMkAcywPwtYb/1wjoIRfkviUEEMd5AvisgP+bAPy+BfkviQLEMc4AfNbA/1UCP2xA/kviADEscwD4rIb/1wh8yID8l0gA4ljmAHAk9H8TgN9sQP5LIgDEsYwB4Mjof5XAzzUgf/UTgBgWMwAcif6vEfghA/KvfgBiOMYAOCL/fwOAv2lA/qofgBgOMwAcEftXSgC/1kD+VT+AOBwOAEdi/9cI/GAF8q/6AcRh+ADgxwd/ZwF4ZQL5l0ZEREREREREPvEXl1m8F/JqY3wAAAAASUVORK5CYII=";
                 
-                const product = productMap[productId]; // OPTIMIZACIÓN: Búsqueda O(1)
-                if (!product) continue;
+                let html = `
+                    <div class="flex justify-between items-start border-b-2 border-[#F9A825] pb-6 mb-6">
+                        <img src="${logo}" class="w-20 h-20">
+                        <div class="text-right">
+                            <h1 class="text-2xl font-bold text-gray-900">CARJO PUERTAS AUTOMÁTICAS</h1>
+                            <p class="text-gray-500 text-sm mt-1">${date}</p>
+                        </div>
+                    </div>
+                    <div class="mb-8"><h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Presupuesto para</h3><p class="text-lg font-semibold text-gray-900">${client}</p></div>
+                    <table class="w-full text-left border-collapse mb-8">
+                        <thead><tr class="border-b border-gray-200"><th class="py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider w-16">Cant.</th><th class="py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Concepto</th><th class="py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider text-right">Precio U.</th><th class="py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider text-right">Total</th></tr></thead>
+                        <tbody class="text-sm text-gray-700">
+                `;
 
-                const lineTotal = product.precio * quantity;
-                
-                let descHtml = product.descripcion 
-                    ? `<br><span style="font-size: 11px; color: #666; font-weight: 400;">${product.descripcion}</span>` 
-                    : '';
+                let subtotal = 0;
+                for (const [pid, qty] of Object.entries(cart)) {
+                    // CORRECCIÓN: Check for product
+                    const p = productMap[pid];
+                    if (!p) continue; 
+                    
+                    const line = p.precio * qty;
+                    subtotal += line;
+                    html += `<tr class="border-b border-gray-100"><td class="py-3 align-top">${qty}</td><td class="py-3"><div class="font-medium text-gray-900">${p.nombre}</div>${p.descripcion ? `<div class="text-xs text-gray-500 mt-0.5">${p.descripcion}</div>` : ''}</td><td class="py-3 text-right align-top whitespace-nowrap">${p.precio.toFixed(2)} €</td><td class="py-3 text-right align-top font-medium whitespace-nowrap">${line.toFixed(2)} €</td></tr>`;
+                }
 
-                tableHtml += `<tr>
-                                <td>${quantity}</td>
-                                <td>
-                                    <strong style="font-size: 13px; color: #333;">${product.nombre}</strong>
-                                    ${descHtml}
-                                </td>
-                                <td class="text-right">${product.precio.toFixed(2)} €</td>
-                                <td class="text-right">${lineTotal.toFixed(2)} €</td>
-                              </tr>`;
+                if (hours > 0) {
+                    const laborTotal = hours * 50;
+                    subtotal += laborTotal;
+                    html += `<tr class="border-b border-gray-100 bg-orange-50/30"><td class="py-3 align-top">${hours}</td><td class="py-3"><div class="font-medium text-gray-900">Mano de Obra</div><div class="text-xs text-gray-500 mt-0.5">Instalación y configuración técnica</div></td><td class="py-3 text-right align-top">50.00 €</td><td class="py-3 text-right align-top font-medium">${laborTotal.toFixed(2)} €</td></tr>`;
+                }
+
+                const vatAmount = subtotal * iva;
+                const total = subtotal + vatAmount;
+
+                html += `</tbody></table><div class="flex justify-end"><div class="w-full max-w-xs space-y-2"><div class="flex justify-between text-sm text-gray-600"><span>Base Imponible</span><span>${subtotal.toFixed(2)} €</span></div><div class="flex justify-between text-sm text-gray-600"><span>IVA (${(iva * 100).toFixed(0)}%)</span><span>${vatAmount.toFixed(2)} €</span></div><div class="flex justify-between items-center pt-3 mt-3 border-t border-gray-200"><span class="text-base font-bold text-gray-900">TOTAL</span><span class="text-xl font-bold text-[#F9A825]">${total.toFixed(2)} €</span></div></div></div><div class="mt-12 pt-6 border-t border-gray-100 text-xs text-gray-400 text-center"><p>Presupuesto válido por 15 días. Garantía de 2 años según legislación vigente.</p></div>`;
+
+                sheet.innerHTML = html;
+                budgetPreviewModalOverlay.classList.remove('hidden');
+            } catch(err) {
+                console.error("Error generating budget", err);
+                alert("Error generando el presupuesto. Intenta recargar la página.");
             }
-            
-            // --- CAMBIO: Añadir Mano de Obra ---
-            const laborPrice = laborHours * 50;
-            if (laborHours > 0) {
-                 tableHtml += `<tr>
-                                <td>${laborHours}</td>
-                                <td>
-                                    <strong style="font-size: 13px; color: #333;">Mano de Obra</strong>
-                                    <br><span style="font-size: 11px; color: #666; font-weight: 400;">Instalación y configuración.</span>
-                                </td>
-                                <td class="text-right">50.00 €</td>
-                                <td class="text-right">${laborPrice.toFixed(2)} €</td>
-                              </tr>`;
-            }
-            // --- FIN CAMBIO ---
-            
-            tableHtml += `</tbody></table>`;
-            
-            // --- CAMBIO: Calcular totales con Mano de Obra ---
-            const totalPrice = productTotalPrice + laborPrice; // Este es el nuevo Total Base
-            const vatAmount = totalPrice * ivaRate;
-            const totalWithVat = totalPrice + vatAmount;
-            
-            const totalsHtml = `
-                <div class="budget-totals-container">
-                    <div class="totals-row">
-                        <span>Total Base:</span>
-                        <span>${totalPrice.toFixed(2)} €</span>
-                    </div>
-                    <div class="totals-row">
-                        <span>IVA (${(ivaRate * 100).toFixed(0)}%):</span>
-                        <span>${vatAmount.toFixed(2)} €</span>
-                    </div>
-                    <div class="totals-row final">
-                        <span>TOTAL (IVA incl.):</span>
-                        <span>${totalWithVat.toFixed(2)} €</span>
-                    </div>
-                </div>
-            `;
-            // --- FIN CAMBIO ---
-
-            const footerHtml = `
-                <div class="budget-footer">
-                    <p><strong>Forma de pago:</strong> 50% a la aceptación del presupuesto, 50% al finalizar la instalación.</p>
-                    <p><strong>Garantía:</strong> Todos nuestros productos cuentan con 2 años de garantía según la legislación vigente.</p>
-                    <p style="margin-top: 10px;">Gracias por su confianza en CARJO PUERTAS AUTOMATICAS.</p>
-                </div>
-            `;
-            
-            budgetSheet.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #F9A825; padding-bottom: 15px;">
-                    <img src="${logo}" alt="Logo Carjo" style="width: 80px; height: 80px;" />
-                    <div style="text-align: right;">
-                        <h2 style="font-size: 28px; font-weight: 700; margin: 0; color: #111;">CARJO PUERTAS AUTOMATICAS</h2>
-                        <p style="font-size: 14px; margin: 0; color: #555;">${new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
-                    </div>
-                </div>
-                <div style="margin-top: 30px; margin-bottom: 10px;">
-                    <h3 style="font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 5px;">Presupuesto para:</h3>
-                    <p style="font-size: 18px; font-weight: 600; color: #111;">${clientName}</p>
-                </div>
-                ${tableHtml}
-                ${totalsHtml}
-                ${footerHtml}
-            `;
-            
-            budgetPreviewModalOverlay.classList.remove('hidden');
         }
-        
     </script>
 </body>
 </html>
-
